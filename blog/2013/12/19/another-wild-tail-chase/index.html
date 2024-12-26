@@ -1,25 +1,25 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><title>Another wild tail chase | @einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Another wild tail chase"><meta property="og:url" content="https://www.example.com/blog/2013/12/19/another-wild-tail-chase/"><link rel="stylesheet" href="/bundles/b37fb33da5e4/app.css"></head><body><header><a href="/">@einarwh</a><hr></header><h1>Another wild tail chase</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><title>Another wild tail chase | @einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Another wild tail chase"><meta property="og:url" content="https://www.example.com/blog/2013/12/19/another-wild-tail-chase/"><link rel="stylesheet" href="/bundles/b37fb33da5e4/app.css"></head><body><header><a href="/">einarwh</a><hr></header><h1>Another wild tail chase</h1>
 <p class="blog-post-date">December 19, 2013</p>
 <p>It appears I’ve been waiting in vain! It’s been more than a month since my last <a href="/blog/2013/11/05/chasing-your-tail-with-bytecode-manipulation/">blog post</a>, and still no pull requests for TailCop! In particular, no pulls requests that implement rewriting of recursive calls to loops for instance methods. I don’t know why.</p>
 <p>I guess it’s up to me, then.</p>
 <p>To recap, <a href="https://github.com/einarwh/tailcop">TailCop</a> is a simple utility I wrote to rewrite tail-recursive static methods to use loops instead (which prevents stack overflow in cases where the recursion goes very deep). The reason we shied away from instance methods last time is dynamic dispatch, which complicates matters a bit. We’ll tackle that in this blog post. To do so, however, we need to impose a couple of constraints.</p>
 <p>First, we need to make sure that the instance method is <em>non-virtual</em>, that is, that it cannot be overridden in a subclass. Why? Well, let’s suppose you let <strong>Add</strong> be virtual, so that people may override it. Sounds reasonable? If it isn’t overridden, then it will behave just the same whether or not it’s rewritten. If it <em>is</em> overridden, then it shouldn’t matter if we override the recursive or the rewritten version, right? Well, you’d think, but unfortunately that’s not the case.</p>
 <p>Say you decided to make <strong>Add</strong> virtual and rewrote it using TailCop. A few months pass by. Along comes your enthusiastic, dim-witted co-worker, ready to redefine the semantics of <strong>Add</strong>. He’s been reading up on object-orientation and is highly motivated to put all his hard-won knowledge to work. Unfortunately, he didn’t quite get to <a href="http://en.wikipedia.org/wiki/Liskov_substitution_principle">the Liskov thing</a>, and so he ends up with this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">Adder</span>
-<span class="p">{</span>
-  <span class="k">virtual</span> <span class="kt">int</span> <span class="nf">Add</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="n">x</span> <span class="p">&gt;</span> <span class="m">0</span> <span class="p">?</span> <span class="n">Add</span><span class="p">(</span><span class="n">x</span> <span class="p">-</span> <span class="m">1</span><span class="p">,</span> <span class="n">y</span> <span class="p">+</span> <span class="m">1</span><span class="p">)</span> <span class="p">:</span> <span class="n">y</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">class Adder</span>
+<span class="err">{</span>
+<span class="err">  virtual int Add(int x, int y)</span>
+<span class="err">  {</span>
+<span class="err">    return x &gt; 0 ? Add(x - 1, y + 1) : y;</span>
+<span class="err">  }</span>
+<span class="err">}</span>
 
-<span class="k">class</span> <span class="nc">BlackAdder</span> <span class="p">:</span> <span class="n">Adder</span>
-<span class="p">{</span>
-  <span class="k">override</span> <span class="kt">int</span> <span class="nf">Add</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="k">base</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="p">&gt;</span> <span class="m">0</span> <span class="p">?</span> <span class="n">y</span> <span class="p">+</span> <span class="m">1</span> <span class="p">:</span> <span class="n">y</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="err">class BlackAdder : Adder</span>
+<span class="err">{</span>
+<span class="err">  override int Add(int x, int y)</span>
+<span class="err">  {</span>
+<span class="err">    return base.Add(x, x &gt; 0 ? y + 1 : y);</span>
+<span class="err">  }</span>
+<span class="err">}</span>
 </code></pre>
 <p>So while he overrides the <strong>Add</strong> method in a subclass, he doesn’t replace it wholesale - he still invokes the original <strong>Add</strong> method as well. But then we have a problem. Due to dynamic dispatch, the recursive <strong>Add</strong> call in <strong>Adder</strong> will invoke <strong>BlackAdder.Add</strong> which will then invoke <strong>Adder.Add</strong> and so forth. Basically we’re taking the elevator up and down in the inheritance hierarchy. If we rewrite <strong>Adder.Add</strong> to use a loop, we will never be allowed to take the elevator back down to <strong>BlackAdder.Add</strong>. Obviously, then, the rewrite is not safe. Running <code>BlackAdder.Add(30, 30)</code> yields 90 with the original recursive version of <strong>Adder.Add</strong> and 61 with the rewritten version. Long story short: we will not rewrite virtual methods.</p>
 <p>Our second constraint is that, obviously, the recursive call has to be made on the same object instance. If we call the <em>same</em> method on a <em>different</em> instance, there’s no guarantee that we’ll get the same result. For instance, if the calculation relies on object state in any way, we’re toast. So we need to invoke the method on <strong>this</strong>, not <strong>that</strong>. So how do we ensure that a recursive call is always made on the same instance - that is, on <strong>this</strong>? Well, obviously we need to be in a situation where the evaluation stack contains a reference to <strong>this</strong> in the right place when we’re making the recursive call. In IL, the <strong>this</strong> parameter to instance methods is always passed explicitly, unlike in C#. So a C# instance method with <em>n</em> parameters is represented as a method with <em>n+1</em> parameters on the IL level. The additional parameter in IL is for the <strong>this</strong> reference, and is passed as the first parameter to the instance method. (This is similar to Python, where the <strong>self</strong> parameter is always passed explicitly to instance methods.) So anyways, if we take the evaluation stack at the point of a call to an instance methods and pop off <em>n</em> values (corresponding to the <em>n</em> parameters in the C# method), we should find a <strong>this</strong> there. If we find something else, we won’t rewrite.</p>

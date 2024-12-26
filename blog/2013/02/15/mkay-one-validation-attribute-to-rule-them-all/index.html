@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><title>Mkay: One validation attribute to rule them all | @einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Mkay: One validation attribute to rule them all"><meta property="og:url" content="https://www.example.com/blog/2013/02/15/mkay-one-validation-attribute-to-rule-them-all/"><link rel="stylesheet" href="/bundles/b37fb33da5e4/app.css"></head><body><header><a href="/">@einarwh</a><hr></header><h1>Mkay: One validation attribute to rule them all</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><title>Mkay: One validation attribute to rule them all | @einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Mkay: One validation attribute to rule them all"><meta property="og:url" content="https://www.example.com/blog/2013/02/15/mkay-one-validation-attribute-to-rule-them-all/"><link rel="stylesheet" href="/bundles/b37fb33da5e4/app.css"></head><body><header><a href="/">einarwh</a><hr></header><h1>Mkay: One validation attribute to rule them all</h1>
 <p class="blog-post-date">February 15, 2013</p>
 <p>If you’ve ever created an ASP.NET MVC application, chances are you’ve used data annotation validators to validate user input to your models. They’re <em>nice</em>, aren’t they? They’re so easy to use, they’re almost like magic. You simply annotate your properties with some declarative constraint, and the good djinns of the framework provide both client-side validation and server-side validation for you. Out of thin air! The client-side validation is implemented in JavaScript and gives rapid feedback to the user during data entry, whereas the server-side validation is implemented in .NET and ensures that the data is valid even if the user should circumvent the client-side validation somehow (an obvious approach would be to disable JavaScript in the browser). Magical.</p>
 <p>The only problem with data annotation validators is that they are pretty limited in their semantics. The built-in validation attributes only cover a few of the most common, basic use cases. For instance, you can use the <strong>[Required]</strong> attribute to ensure that a property is given a value, the <strong>[Range]</strong> attribute to specify that the property of a value must be between two constant values, or the <strong>[RegularExpression]</strong> attribute to specify a regular expression that a string property must match. That’s all well and good, but not really suited for sophisticated validation. In case you have stronger constraints or invariants for your data model, you must reach for one of two solutions. You can use the <strong>[Remote]</strong> attribute, which allows you to do arbitrary validation at the server. In that case, however, you’re doing faux-client-side validation. What really happens behind the scenes is that you fire off an AJAX call to the server. The alternative is to implement your own custom validation attribute, and write validation logic in both .NET and in JavaScript. However, that quickly becomes tiresome. While your custom attribute certainly can do arbitrary model validation, you’ve ended up doing the work that the djinns should be doing for you. There is no magic any more, there is just grunt work. The spell is broken.</p>
@@ -9,20 +9,20 @@
 <li>LISP syntax is super-easy to parse.</li>
 </ol>
 <p>So that’s the syntax, but exactly what kinds of rules can you express using the Mkay rule DSL? Well, that’s pretty much up to you - that’s the whole point, after all. In an Mkay expression, you can have constant values, property access (to any property on the model), logical operators (<em>and</em> and <em>or</em>), comparison operators (<em>equality</em>, <em>greater-than</em>, <em>less-than</em> and so forth), arithmetic, and a handful of simple functions (such as <em>len</em> for string length, <em>max</em> for selecting max value, <em>now</em> for the current time etc). It’s not too hard to extend it to support additional functions, but obviously they must then be implemented/wired up in JavaScript and .NET code. A contrived example should make it clearer:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Person</span>
-<span class="p">{</span>
-<span class="na">  [Mkay("(&lt; (len .) 5)", ErrorMessage = "That's too long, my friend.")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="na"> </span>
-<span class="na">  [Mkay("(&gt;= . \"31.01.1900\")")]</span>
-  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">BirthDate</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="na"> </span>
-<span class="na">  [Mkay("(&lt;= . (now))")]</span>
-  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">DeathDate</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="na"> </span>
-<span class="na">  [Mkay("(and (&gt;= . BirthDate) (&lt;= . DeathDate))")]</span>
-  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">LastSeen</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">public class Person</span>
+<span class="err">{</span>
+<span class="err">  [Mkay("(&lt; (len .) 5)", ErrorMessage = "That's too long, my friend.")]</span>
+<span class="err">  public string Name { get; set; }</span>
+<span class="err"> </span>
+<span class="err">  [Mkay("(&gt;= . \"31.01.1900\")")]</span>
+<span class="err">  public DateTime BirthDate { get; set; }</span>
+<span class="err"> </span>
+<span class="err">  [Mkay("(&lt;= . (now))")]</span>
+<span class="err">  public DateTime DeathDate { get; set; }</span>
+<span class="err"> </span>
+<span class="err">  [Mkay("(and (&gt;= . BirthDate) (&lt;= . DeathDate))")]</span>
+<span class="err">  public DateTime LastSeen { get; set; }</span>
+<span class="err">}</span>
 </code></pre>
 <p>In case it’s not terribly obvious, the rules indicate that the length of the <strong>Name</strong> property must be less than <em>10</em>, the <strong>BirthDate</strong> must be later than <em>31.01.1900</em>, the <strong>DeathDate</strong> must be before the current date, and <strong>LastSeen</strong> must understandably be some time between birth and death. Makes sense?</p>
 <p>If you’ve never seen a LISP expression before, note that LISP operators are put in front of, rather than in between, the values they operate on. This is known as prefix notation as opposed to infix notation (or postfix notation, where the operator comes at the end). An expression like “(&lt; . (now))” should be interpreted as “the value of the <strong>DeathDate</strong> property should be less than the value of (now)”. From this, you might deduce (correctly) that “.” is used as shorthand for the name of the property being validated. This is the first of three spoonfuls of syntactic sugar employed by Mkay to simplify the syntax for validation rules. The second spoonful is implicit “.” for comparisons, which means that you can actually write “(&lt; (now))” instead of “(&lt; . (now))”. And finally, the third spoonful lets you drop the outermost parentheses, so you end up with “&lt; (now)”. Using simplified syntax, the example looks like this:</p>
