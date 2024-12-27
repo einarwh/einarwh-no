@@ -5,12 +5,12 @@
 <p>I’ve been discussing how to best solve this problem in a completely general and flexible way in several impromptu popsicle- and coffee-driven sessions with some of my compatriots at work (in particular Johan and Jonas - thanks guys!). Some of the code examples in this blog post, especially those who exhibit some trace of intelligence, can legitimately be considered rip-offs, evolutions, misunderstandings or various other degenerations of similar code snippets they have come up with.</p>
 <p>But I’m getting ahead of myself. Let’s return to the root of the problem: how exception handling code has a tendency to overshadow the so-called business logic in our applications and to cause severe cases of duplication.</p>
 <p>The problem is minor if there is a single exception we’re catching:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">try {</span>
-<span class="err">  // Interesting code.</span>
-<span class="err">}</span>
-<span class="err">catch (SomeException ex) {</span>
-<span class="err">  // Dull exception handling code.</span>
-<span class="err">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">try</span> <span class="p">{</span>
+  <span class="c1">// Interesting code.</span>
+<span class="p">}</span>
+<span class="k">catch</span> <span class="p">(</span><span class="n">SomeException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Dull exception handling code.</span>
+<span class="p">}</span>
 </code></pre>
 <p>However, things regress quickly with additional types of exceptions:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">try</span> <span class="p">{</span>
