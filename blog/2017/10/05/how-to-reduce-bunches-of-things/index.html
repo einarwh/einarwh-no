@@ -16,8 +16,8 @@
 <span class="p">}</span>
 </code></pre>
 <p>And now if you have a bunch of integers, say, you can add them all up like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">var integers = new [] { 1, 2, 3, 4 };</span>
-<span class="err">var sum = i</span><span class="n">ntegers</span><span class="p">.</span><span class="n">Reduce</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">a</span> <span class="p">+</span> <span class="n">b</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">integers</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span> <span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span> <span class="p">};</span>
+<span class="kt">var</span> <span class="n">sum</span> <span class="p">=</span> <span class="n">integers</span><span class="p">.</span><span class="n">Reduce</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">a</span> <span class="p">+</span> <span class="n">b</span><span class="p">,</span> <span class="m">0</span><span class="p">);</span>
 </code></pre>
 <p>If, on the other hand, you have a bunch of lists, you’d do something like this instead:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">lists</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span>

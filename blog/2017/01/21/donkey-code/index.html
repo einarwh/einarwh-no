@@ -10,12 +10,12 @@
 <p>There is now a tendency for confusion when discussing other kinds of changes to the product, though. The unqualified term “horse” is obviously used quite a bit in all kinds of discussions, but sometimes the special short and stubborn kind is meant to be included and sometimes it is not. So to clarify, you and your co-workers find yourself saying things like “any horse” to mean the former and “regular horse”, “ordinary horse”, “old horse”, “horse-horse” or even “horse that’s not small and stubborn” to mean the latter.</p>
 <p>To implement support for the new horse in eQuest, you need some way of distinguish between it and an ordinary horse-horse. So you add an <strong>IsShort</strong> property to your <strong>Horse</strong> data representation. That’s easy, it’s just a derived property from the <strong>Height</strong> property. No changes to the database schema or anything. In addition, you add an <strong>IsStubborn</strong> property and checkbox to the registration form for horses in eQuest. That’s a new flag in the database, but that’s OK. With that in place, you have everything you need to implement the new functionality and make the necessary adjustments otherwise.</p>
 <p>Although much of the code applies to horses and short, stubborn horses alike, you find that the transport module, the feeding module, the training module and the breeding module all need a few adjustments, since the new horses aren’t quite like the regular horses in all respects. You need to inject little bits of logic here, split some cases in two there. It takes a few different forms, and you and your co-workers do things a bit differently. Sometimes you employ if-branches with logic that looks like this:</p>
-<pre class="codehilite"><code class="language-csharp">if (horse.IsShort &amp;&amp; horse.IsStubborn) {
-  // Logic for the new horse case.
-}
-else {
-  // Regular horse code here.
-}
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">if</span> <span class="p">(</span><span class="n">horse</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span> <span class="n">horse</span><span class="p">.</span><span class="n">IsStubborn</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Logic for the new horse case.</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="p">{</span>
+  <span class="c1">// Regular horse code here.</span>
+<span class="p">}</span>
 </code></pre>
 <p>Other times you go fancy with LINQ:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">newHorses</span> <span class="p">=</span> <span class="n">horses</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">h</span> <span class="p">=&gt;</span> <span class="n">h</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span> <span class="n">h</span><span class="p">.</span><span class="n">IsStubborn</span><span class="p">);</span>
