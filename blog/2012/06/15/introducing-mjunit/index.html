@@ -10,15 +10,15 @@
 <p>Anyways, the way I <em>think</em> these frameworks work is that you have some mechanics for identifying <em>test methods</em> hanging off of <em>test classes</em>. For each test method, you create an instance of the test class, run the method, and evaluate the result. Since you don’t want to state explicitly which test methods to run, you typically use reflection to identify and run all the test methods instead. At least that’s how μnit works.</p>
 <p>One feature that got axed in the .NET micro framework is <em>custom attributes</em>, and hence there can be no [Test] annotation for labelling test methods. So μnit uses naming conventions for identifying test methods instead, just like in jUnit 3 and earlier. But that’s just cosmetics, it doesn’t really change anything. In μnit we use the arbitrary yet common convention that test methods should start with the prefix “Test”. In addition, they must be public, return void and have no parameters. Test classes must inherit from the <strong>Fixture</strong> base class, and must have a parameterless constructor. All catering for the tiny bit of reflection voodoo necessary to run the tests.</p>
 <p>Here’s the <strong>Fixture</strong> class that all test classes must inherit from:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">namespace Mjunit</span>
-<span class="err">{</span>
-<span class="err">    public abstract class Fixture</span>
-<span class="err">    {</span>
-<span class="err">        public virtual void Setup() {}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">namespace</span> <span class="nn">Mjunit</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">Fixture</span>
+    <span class="p">{</span>
+        <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Setup</span><span class="p">()</span> <span class="p">{}</span>
 
-<span class="err">        public virtual void Teardown() {}</span>
-<span class="err">    }</span>
-<span class="err">}</span>
+        <span class="k">public</span> <span class="k">virtual</span> <span class="k">void</span> <span class="nf">Teardown</span><span class="p">()</span> <span class="p">{}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </code></pre>
 <p>As you can see, <strong>Fixture</strong> defines empty virtual methods for set-up and tear-down, named <strong>SetUp</strong> and <strong>TearDown</strong>, respectively. Test classes can override these to make something actually happen before and after a test method is run. Conventional stuff.</p>
 <p>The task of identifying test methods to run is handler by the <strong>TestFinder</strong> class.</p>

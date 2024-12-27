@@ -3,17 +3,17 @@
 <p>So there you are, a pragmatic C# programmer out to provide business value for your end users and all that stuff. That’s great.</p>
 <p>One of the (admittedly many) things you might want to do is reduce a bunch of things of some type into a single thing of that type. For instance, you might want to add a bunch of numbers together, or concatinate a bunch of strings and so on. How would you do that? (Assuming there’s no built-in <code>Aggregate</code> method available, that is.) Well, you’d write a <code>Reduce</code> function, right? And since we haven’t specified in advance what kinds of things we should reduce, we better make it generic. So it could work on an <code>IEnumerable&lt;T&gt;</code> of things.</p>
 <p>Now how should the actual reduction take place? An obvious idea is to do it stepwise. It’s both a good problem solving strategy in general, and kind of necessary when dealing with an <code>IEnumerable</code>. For that to work, though, you need some way of taking two values and combining them to produce a single value. So <code>Reduce</code> needs to be a higher-order function. The caller should pass in a <code>combine</code> function, as well as some initial value to combine with the first element. And then the completed function might look something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">combine</span><span class="p">,</span> 
-  <span class="n">T</span> <span class="n">initialValue</span><span class="p">)</span> 
-<span class="p">{</span>
-  <span class="n">T</span> <span class="n">result</span> <span class="p">=</span> <span class="n">initialValue</span><span class="p">;</span>
-  <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">t</span> <span class="k">in</span> <span class="n">things</span><span class="p">)</span> 
-  <span class="p">{</span>
-    <span class="n">result</span> <span class="p">=</span> <span class="n">combine</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">t</span><span class="p">);</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-<span class="p">}</span>
+<pre class="codehilite"><code class="language-csharp">public static T Reduce(this IEnumerable&lt;T&gt; things, 
+  Func&lt;T, T, T&gt; combine, 
+  T initialValue) 
+{
+  T result = initialValue;
+  foreach (var t in things) 
+  {
+    result = combine(result, t);
+  }
+  return result;
+}
 </code></pre>
 <p>And now if you have a bunch of integers, say, you can add them all up like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">integers</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span> <span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span> <span class="p">};</span>

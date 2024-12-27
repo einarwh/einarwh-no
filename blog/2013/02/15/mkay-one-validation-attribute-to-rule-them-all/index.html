@@ -9,20 +9,20 @@
 <li>LISP syntax is super-easy to parse.</li>
 </ol>
 <p>So that’s the syntax, but exactly what kinds of rules can you express using the Mkay rule DSL? Well, that’s pretty much up to you - that’s the whole point, after all. In an Mkay expression, you can have constant values, property access (to any property on the model), logical operators (<em>and</em> and <em>or</em>), comparison operators (<em>equality</em>, <em>greater-than</em>, <em>less-than</em> and so forth), arithmetic, and a handful of simple functions (such as <em>len</em> for string length, <em>max</em> for selecting max value, <em>now</em> for the current time etc). It’s not too hard to extend it to support additional functions, but obviously they must then be implemented/wired up in JavaScript and .NET code. A contrived example should make it clearer:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">public class Person</span>
-<span class="err">{</span>
-<span class="err">  [Mkay("(&lt; (len .) 5)", ErrorMessage = "That's too long, my friend.")]</span>
-<span class="err">  public string Name { get; set; }</span>
-<span class="err"> </span>
-<span class="err">  [Mkay("(&gt;= . \"31.01.1900\")")]</span>
-<span class="err">  public DateTime BirthDate { get; set; }</span>
-<span class="err"> </span>
-<span class="err">  [Mkay("(&lt;= . (now))")]</span>
-<span class="err">  public DateTime DeathDate { get; set; }</span>
-<span class="err"> </span>
-<span class="err">  [Mkay("(and (&gt;= . BirthDate) (&lt;= . DeathDate))")]</span>
-<span class="err">  public DateTime LastSeen { get; set; }</span>
-<span class="err">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Person</span>
+<span class="p">{</span>
+<span class="na">  [Mkay("(&lt; (len .) 5)", ErrorMessage = "That's too long, my friend.")]</span>
+  <span class="k">public</span> <span class="kt">string</span> <span class="n">Name</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="na"> </span>
+<span class="na">  [Mkay("(&gt;= . \"31.01.1900\")")]</span>
+  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">BirthDate</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="na"> </span>
+<span class="na">  [Mkay("(&lt;= . (now))")]</span>
+  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">DeathDate</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="na"> </span>
+<span class="na">  [Mkay("(and (&gt;= . BirthDate) (&lt;= . DeathDate))")]</span>
+  <span class="k">public</span> <span class="n">DateTime</span> <span class="n">LastSeen</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">}</span>
 </code></pre>
 <p>In case it’s not terribly obvious, the rules indicate that the length of the <strong>Name</strong> property must be less than <em>10</em>, the <strong>BirthDate</strong> must be later than <em>31.01.1900</em>, the <strong>DeathDate</strong> must be before the current date, and <strong>LastSeen</strong> must understandably be some time between birth and death. Makes sense?</p>
 <p>If you’ve never seen a LISP expression before, note that LISP operators are put in front of, rather than in between, the values they operate on. This is known as prefix notation as opposed to infix notation (or postfix notation, where the operator comes at the end). An expression like “(&lt; . (now))” should be interpreted as “the value of the <strong>DeathDate</strong> property should be less than the value of (now)”. From this, you might deduce (correctly) that “.” is used as shorthand for the name of the property being validated. This is the first of three spoonfuls of syntactic sugar employed by Mkay to simplify the syntax for validation rules. The second spoonful is implicit “.” for comparisons, which means that you can actually write “(&lt; (now))” instead of “(&lt; . (now))”. And finally, the third spoonful lets you drop the outermost parentheses, so you end up with “&lt; (now)”. Using simplified syntax, the example looks like this:</p>

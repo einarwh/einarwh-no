@@ -30,34 +30,34 @@
 <p>First, we make the arbitrary choice of associating the offspring with the female voles only. The male voles will be counted as having no offspring at all. While perhaps a bit old fashioned, this greatly simplifies our task. (Of course, we could just as well have opted for the opposite.)</p>
 <p>Now we just need to count the offspring of female voles. Since we know that the offspring function is purely deterministic, this isn’t too hard. Given a certain number of days available for reproduction, a female vole we will always yield the same number of offspring. (As if women were idempotent!)</p>
 <p>To calculate an answer, we can write a small program.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Voles</span> 
-<span class="p">{</span>
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">int</span> <span class="n">_daysBeforeFirst</span> <span class="p">=</span> <span class="m">25</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">int</span> <span class="n">_daysBetween</span> <span class="p">=</span> <span class="m">20</span><span class="p">;</span>
- 
-  <span class="k">private</span> <span class="k">static</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">long</span><span class="p">&gt;</span> <span class="n">_cache</span> <span class="p">=</span> 
-    <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">long</span><span class="p">&gt;();</span>
-  
-  <span class="k">public</span> <span class="k">static</span> <span class="kt">long</span> <span class="nf">F</span><span class="p">(</span><span class="kt">int</span> <span class="n">days</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(!</span><span class="n">_cache</span><span class="p">.</span><span class="n">ContainsKey</span><span class="p">(</span><span class="n">days</span><span class="p">))</span> <span class="p">{</span>
-      <span class="n">_cache</span><span class="p">[</span><span class="n">days</span><span class="p">]</span> <span class="p">=</span> <span class="n">F0</span><span class="p">(</span><span class="n">days</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">_cache</span><span class="p">[</span><span class="n">days</span><span class="p">];</span>
-  <span class="p">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">public class Voles </span>
+<span class="err">{</span>
+<span class="err">  private static int _daysBeforeFirst = 25;</span>
+<span class="err">  private static int _daysBetween = 20;</span>
+<span class="err"> </span>
+<span class="err">  private static Dictionary&lt;int, long&gt; _cache = </span>
+<span class="err">    new Dictionary&lt;int, long&gt;();</span>
+<span class="err">  </span>
+<span class="err">  public static long F(int days) {</span>
+<span class="err">    if (!_cache.ContainsKey(days)) {</span>
+<span class="err">      _cache[days] = F0(days);</span>
+<span class="err">    }</span>
+<span class="err">    return _cache[days];</span>
+<span class="err">  }</span>
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">long</span> <span class="nf">F0</span><span class="p">(</span><span class="kt">int</span> <span class="n">days</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kt">int</span> <span class="n">end</span> <span class="p">=</span> <span class="n">days</span> <span class="p">-</span> <span class="n">_daysBeforeFirst</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">end</span> <span class="p">&lt;</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="m">1</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="kt">int</span> <span class="n">start</span> <span class="p">=</span> <span class="n">end</span> <span class="p">%</span> <span class="n">_daysBetween</span><span class="p">;</span>
-    <span class="kt">long</span> <span class="n">count</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">d</span> <span class="p">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">d</span> <span class="p">&lt;=</span> <span class="n">end</span><span class="p">;</span> <span class="n">d</span> <span class="p">+=</span> <span class="n">_daysBetween</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">count</span> <span class="p">+=</span> <span class="n">F</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="p">+</span> <span class="m">1</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="m">1</span> <span class="p">+</span> <span class="m">4</span> <span class="p">*</span> <span class="n">count</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="err">  private static long F0(int days) {</span>
+<span class="err">    int end = days - _daysBeforeFirst;</span>
+<span class="err">    if (end &lt; 0) {</span>
+<span class="err">      return 1;</span>
+<span class="err">    }</span>
+<span class="err">    int start = end % _daysBetween;</span>
+<span class="err">    long count = 0;</span>
+<span class="err">    for (int d = start; d &lt;= end; d += _daysBetween) {</span>
+<span class="err">      count += F(d) + 1;</span>
+<span class="err">    }</span>
+<span class="err">    return 1 + 4 * count;</span>
+<span class="err">  }</span>
+<span class="err">}</span>
 </code></pre>
 <p>The <strong>F</strong> method calculates the total number of offspring for a female vole as a function of how many days it has lived. If you call <strong>F</strong> with an input of <strong>365</strong> days, you’ll find that the answer is <strong>55,784,398,225</strong>. That’s a lot of voles.</p>
 <p>How does the algorithm work, though? Well, we assume that we start with a single newborn female vole that has 365 days available to produce offspring (with the first litter arriving after 25 days). Then the number of offspring is given by:</p>
