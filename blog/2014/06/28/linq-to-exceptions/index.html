@@ -5,12 +5,12 @@
 <p>I’ve been discussing how to best solve this problem in a completely general and flexible way in several impromptu popsicle- and coffee-driven sessions with some of my compatriots at work (in particular Johan and Jonas - thanks guys!). Some of the code examples in this blog post, especially those who exhibit some trace of intelligence, can legitimately be considered rip-offs, evolutions, misunderstandings or various other degenerations of similar code snippets they have come up with.</p>
 <p>But I’m getting ahead of myself. Let’s return to the root of the problem: how exception handling code has a tendency to overshadow the so-called business logic in our applications and to cause severe cases of duplication.</p>
 <p>The problem is minor if there is a single exception we’re catching:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">try {</span>
-<span class="err">  // Interesting code.</span>
-<span class="err">}</span>
-<span class="err">catch (SomeException ex) {</span>
-<span class="err">  // Dull exception handling code.</span>
-<span class="err">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">try</span> <span class="p">{</span>
+  <span class="c1">// Interesting code.</span>
+<span class="p">}</span>
+<span class="k">catch</span> <span class="p">(</span><span class="n">SomeException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Dull exception handling code.</span>
+<span class="p">}</span>
 </code></pre>
 <p>However, things regress quickly with additional types of exceptions:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">try</span> <span class="p">{</span>
@@ -120,17 +120,17 @@
 <span class="p">}</span>
 </code></pre>
 <p>Which just might be the worst code ever, and also has the idiosyncracy that the additional catch-handler will only be reached if the <strong>Exception</strong> handler rethrows. Horrible. Better, perhaps, to put it inside?</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">Quux SafeMethod3() {</span>
-<span class="err">  return Call(() =&gt; </span>
-<span class="err">    { </span>
-<span class="err">      try { return Method3(); } catch (IdiosyncraticException ex) { throw ex; } </span>
-<span class="err">    },</span>
-<span class="err">    ex =&gt; // Handle SomeException,</span>
-<span class="err">    ex =&gt; // Handle SomeOtherException,</span>
-<span class="err">    ex =&gt; // Handle YetAnotherException,</span>
-<span class="err">    ex =&gt; // Handle Exception</span>
-<span class="err">  );    </span>
-<span class="err">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Quux</span> <span class="nf">SafeMethod3</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nf">Call</span><span class="p">(()</span> <span class="p">=&gt;</span> 
+    <span class="p">{</span> 
+      <span class="k">try</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Method3</span><span class="p">();</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IdiosyncraticException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">ex</span><span class="p">;</span> <span class="p">}</span> 
+    <span class="p">},</span>
+    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeException,</span>
+    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeOtherException,</span>
+    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle YetAnotherException,</span>
+    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle Exception</span>
+  <span class="p">);</span>    
+<span class="p">}</span>
 </code></pre>
 <p>Well yes, slightly better, but still pretty horrible, and much worse than just suffering the duplication in the first place. But maybe we’ve learned something. What we need is composition - our current solution doesn’t compose at all. we need to be able to put together exactly the exception handlers we need for each method, while at the same time avoiding repetition. The problem is in some sense the coupling between the exception handlers. What if we tried a different approach, handling a single exception at a time?</p>
 <p>We could have a less ambitious <strong>Call</strong>-method, that would handle just a single type of exception for a method. Like this:</p>
