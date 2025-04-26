@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><title>Designless design | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Designless design"><meta property="og:url" content="https://einarwh.no/draft/designless-design/"><link rel="stylesheet" href="/bundles/460d8eeb81b7/app.css"></head><body><header><a href="/">einarwh</a><hr></header><h1>Designless design</h1>
+<p class="blog-post-date">February 8, 2025</p>
+<p>Claim: lots of software is designed without design. I’m not talking about UX.</p>
+<ul>
+<li>Incrementalism.</li>
+<li>Design by epicycle.</li>
+<li>One-patch-away development.</li>
+</ul>
+<p>A process of approximation.</p>
+<p>Incrementalism is the belief that</p>
+<p>Of course, writing software necessarily must produce a design regardless of how you do it. Hence designless design.</p>
+<p>Designless design arrives at a design by accumulating structure rather than implementing a conceptual model.</p>
+<p>Is design an attempt to stop time?</p>
+<p>What is more or less brittle? What is more or less likely to suffer from problems like overfitting?</p>
+<p>Incrementalism vs working in iterations or implementing in increments.</p>
+<p>Conceptual breakthrough?</p>
+<p>“The clean design wants to emerge”?</p>
+<p>Is it a matter of “listening to the material?”</p>
+<p>What’s the place for tacit knowledge? The reflective practitioner.</p>
+<p>There is little evidence that “emergent design” is successful in teasing out good designs on a regular basis. Rather, what seem to emerge are so-called big balls of mud. We shouldn’t be surprised by this. Spaghetti code is just vernacular for epicycles upon epicycles - what you would expect when practicing design by epicycle.</p>
+<p>“The code is the design”
+“There is no design to be done apart from mucking about in the code.”</p>
+<p>In a way, it fits TDD like a glove. Each new failing test is a bug report against an incomplete solution. Underlying assumption: we’ll always make progress. The incomplete solution approaches a complete solution in the limit. It will become better and reach a satisfactory state, with an arbitrarily small epsilon of incompleteness remaining. But this assumption is just an assumption, it’s not necessarily universally true, even though it may hold under many circumstances in practice. Sometimes, you may find that the epsilon remains large.</p>
+<p>There’s a certain tinge of Zeno’s paradox to incrementalism.</p>
+<p>Assumptions:</p>
+<ul>
+<li>there will always be progress</li>
+<li>incremental improvements are always possible</li>
+<li>the next incremental improvement is not harder than the previous one</li>
+<li>error can be made arbitrarily small</li>
+</ul>
+<p>Working in small increments means that I am given many chances to adjust my course and to listen to feedback.</p>
+<p>The idea that changes are small are offered as rationale for these assumptions. I can easily paint myself into a corner using small strokes. (Will not be understood, need better image.)</p>
+<p>I can not go to the moon by</p>
+<p>A benefit of (extreme) incrementalism is that you don’t need a conceptual solution or even a well-defined problem. You sort of just chip away at it until you’re more or less happy. If you’re happy and then find out later you’re actually unhappy because the solution is incomplete or unsatisfactory, you patch it. This is the great strength of designless design, and also its great weakness.</p>
+<p>Partial solutions to ill-defined problems.</p>
+<p>Can these be valuable? Yes, obviously, evidently.</p>
+<p>ANYTHING WORTH DOING IS WORTH DOING POORLY.</p>
+<p>There’s lots of valuable software out there written using this approach. Is all well then? Is designless design the way to go? Not necessarily. There’s also lots of software that has effectively ground to a halt, whose value is deteriorating over time.</p>
+<p>Lots of line-of-business applications are just a bunch of easy problems stacked on top of each other. The challenge is not in the individual problems, but in putting them all together in a way that progress and change does not grind to a halt over time.</p>
+<p>Non-trivial/hard problems don’t necessarily yield to incrementalism. The classic example is the suduko affair.</p>
+<p><a href="https://explaining.software/archive/the-sudoku-affair/">https://explaining.software/archive/the-sudoku-affair/</a></p>
+<p>Writing a Sudoku solver is harder than the typical “business problem” of shuffling data in and out of databases or over HTTP. This despite actually being a rare instance of a well-defined problem. You need a conceptual solution to the problem or you might find that you will struggle and get stuck.</p>
+<p>Many developers have the same experience solving Advent of Code puzzles. The first week is pleasant, because the problems yield to very nicely incrementalism and design by epicycle. That is, naive approaches are sufficient. But at some point, naive solutions won’t do, and you will have to employ certain data structures or algorithms or you simply won’t be able to solve the problems.</p>
+<p>The distinction between implementing a design and …?</p>
+<p>Many problems in line-of-business applications yield very well to incrementalism. Undesigned solutions typically compose poorly, because they lack conceptual integrity. But you can still stack a great number of such approximate on top of each other and make them work by practicing one-patch-away development and adding epicycles to your architecture.</p>
+<p>Problem: Rampant “complexity” or complicatedness. One-patch-away development works best when patches are easy to make and there are few interconnections. Over time, it tends to become harder to write patches. We call this “technical debt”. Loss of degrees of freedom, solutions that don’t play well together, that don’t compose, that don’t add up.</p>
+<p>Examples of designless design: creating an API by exposing some data. What is the problem with this?</p>
+<p>What, if anything, can designful design do that designless design can not? Well, first of all, it can solve harder problems. Second, it can stand a greater chance of allowing composition of solutions into larger solutions, of avoiding or postponing the gradual grinding to a halt so endemic in software.</p>
+<p>It can be useful to try</p>
+</body></html>
