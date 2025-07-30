@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Patching polymorphic pain at runtime | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Patching polymorphic pain at runtime"><meta property="og:url" content="https://einarwh.no/blog/2011/04/28/patching-polymorphic-pain-at-runtime/"><link rel="stylesheet" href="/bundles/de3e982eccf0/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Patching polymorphic pain at runtime</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Patching polymorphic pain at runtime | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Patching polymorphic pain at runtime"><meta property="og:url" content="https://einarwh.no/blog/2011/04/28/patching-polymorphic-pain-at-runtime/"><link rel="stylesheet" href="/bundles/42324ee5f62e/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Patching polymorphic pain at runtime</h1>
 <p class="blog-post-date">April 28, 2011</p>
 <p>In the last post, we saw that data binding in ASP.NET doesn’t support polymorphism. We also saw that we could mitigate the problem by using simple wrapper types. Writing such wrappers by hand won’t kill you, but it is fairly brain-dead. I mentioned that an alternative would be to generate the wrappers at runtime, using reflection. That actually sounds like a bit of fun, so let’s see how it can be done. If nothing else, it’s a nice introductory lesson in using <strong>Reflection.Emit</strong>.</p>
 <h2>Comeback of the canines</h2>
@@ -36,12 +36,12 @@
 </code></pre>
 <p>What we want to do in our web application is display a grid that shows the canine’s eating preferences as well as its bark. This calls for a combination of auto-generated and custom columns: an automatic one for the <strong>Bark</strong> property, and a custom one for each kind of food.</p>
 <p>The <strong>DataGrid</strong> is declared in the .aspx page:</p>
-<pre class="codehilite"><code class="language-xml"><span></span><span class="nt">&lt;asp:DataGrid</span> 
-  <span class="na">ID=</span><span class="s">"_grid"</span> 
-  <span class="na">runat=</span><span class="s">"server"</span> 
-  <span class="na">Auto-generateColumns=</span><span class="s">"true"</span> 
-  <span class="na">Font-Size=</span><span class="s">"X-Large"</span> 
-  <span class="na">Font-Names=</span><span class="s">"Consolas"</span> 
+<pre class="codehilite"><code class="language-xml"><span></span><span class="nt">&lt;asp:DataGrid</span>
+  <span class="na">ID=</span><span class="s">"_grid"</span>
+  <span class="na">runat=</span><span class="s">"server"</span>
+  <span class="na">Auto-generateColumns=</span><span class="s">"true"</span>
+  <span class="na">Font-Size=</span><span class="s">"X-Large"</span>
+  <span class="na">Font-Names=</span><span class="s">"Consolas"</span>
   <span class="na">HeaderStyle-BackColor=</span><span class="s">"LightBlue"</span> <span class="nt">/&gt;</span>
 </code></pre>
 <p>This gives us a column for the <strong>Bark</strong> out of the box.</p>
@@ -57,19 +57,19 @@
 <span class="p">{</span>
   <span class="k">return</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">DataGridColumn</span><span class="p">&gt;</span>
   <span class="p">{</span>
-    <span class="k">new</span> <span class="n">TemplateColumn</span> 
+    <span class="k">new</span> <span class="n">TemplateColumn</span>
     <span class="p">{</span>
-      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"Biscuits?"</span><span class="p">,</span> 
+      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"Biscuits?"</span><span class="p">,</span>
       <span class="n">ItemTemplate</span> <span class="p">=</span> <span class="k">new</span> <span class="n">FoodColumnTemplate</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">Biscuit</span><span class="p">)</span>
     <span class="p">},</span>
-    <span class="k">new</span> <span class="n">TemplateColumn</span> 
+    <span class="k">new</span> <span class="n">TemplateColumn</span>
     <span class="p">{</span>
-      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"Meatballs?"</span><span class="p">,</span> 
+      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"Meatballs?"</span><span class="p">,</span>
       <span class="n">ItemTemplate</span> <span class="p">=</span> <span class="k">new</span> <span class="n">FoodColumnTemplate</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">Meatballs</span><span class="p">)</span>
     <span class="p">},</span>
-    <span class="k">new</span> <span class="n">TemplateColumn</span> 
+    <span class="k">new</span> <span class="n">TemplateColumn</span>
     <span class="p">{</span>
-      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"You?"</span><span class="p">,</span> 
+      <span class="n">HeaderText</span> <span class="p">=</span> <span class="s">"You?"</span><span class="p">,</span>
       <span class="n">ItemTemplate</span> <span class="p">=</span> <span class="k">new</span> <span class="n">FoodColumnTemplate</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">You</span><span class="p">)</span>
     <span class="p">}</span>
   <span class="p">};</span>
@@ -201,7 +201,7 @@
 
   <span class="k">public</span> <span class="n">T</span> <span class="nf">Unwrap</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_</span><span class="p">;</span> <span class="p">}</span>
 
-  <span class="k">public</span> <span class="n">Box</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Create</span><span class="p">(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="n">Box</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Create</span><span class="p">(</span><span class="n">T</span> <span class="n">t</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kt">var</span> <span class="n">box</span> <span class="p">=</span> <span class="n">MemberwiseClone</span><span class="p">();</span>
     <span class="n">box</span><span class="p">.</span><span class="n">_</span> <span class="p">=</span> <span class="n">t</span><span class="p">;</span>
@@ -235,28 +235,28 @@
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
   {
     .maxstack 8
-    L_0000: ldarg.0 
+    L_0000: ldarg.0
     L_0001: call instance void PolyFix.Lib.Box`1&lt;class PolyFix.Lib.ICanine&gt;::.ctor()
-    L_0006: ret 
+    L_0006: ret
   }
 
   .method public hidebysig newslot virtual final instance bool Eats(valuetype PolyFix.Lib.Food f) cil managed
   {
     .maxstack 8
-    L_0000: ldarg.0 
+    L_0000: ldarg.0
     L_0001: ldfld !0 PolyFix.Lib.Box`1&lt;class PolyFix.Lib.ICanine&gt;::_
-    L_0006: ldarg.1 
+    L_0006: ldarg.1
     L_0007: callvirt instance bool PolyFix.Lib.ICanine::Eats(valuetype PolyFix.Lib.Food)
-    L_000c: ret 
+    L_000c: ret
   }
 
   .method public hidebysig specialname newslot virtual final instance string get_Bark() cil managed
   {
     .maxstack 8
-    L_0000: ldarg.0 
+    L_0000: ldarg.0
     L_0001: ldfld !0 PolyFix.Lib.Box`1&lt;class PolyFix.Lib.ICanine&gt;::_
     L_0006: callvirt instance string PolyFix.Lib.ICanine::get_Bark()
-    L_000b: ret 
+    L_000b: ret
   }
 
   .property instance string Bark
@@ -357,8 +357,8 @@
     <span class="kt">var</span> <span class="n">parameters</span> <span class="p">=</span> <span class="n">m</span><span class="p">.</span><span class="n">GetParameters</span><span class="p">();</span>
 
     <span class="c1">// Create a builder for the current method.</span>
-    <span class="kt">var</span> <span class="n">methodBuilder</span> <span class="p">=</span> <span class="n">_boxBuilder</span><span class="p">.</span><span class="n">DefineMethod</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span> 
-        <span class="n">MethodAttributes</span><span class="p">.</span><span class="n">Public</span> <span class="p">|</span> <span class="n">MethodAttributes</span><span class="p">.</span><span class="n">Virtual</span><span class="p">,</span> 
+    <span class="kt">var</span> <span class="n">methodBuilder</span> <span class="p">=</span> <span class="n">_boxBuilder</span><span class="p">.</span><span class="n">DefineMethod</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">Name</span><span class="p">,</span>
+        <span class="n">MethodAttributes</span><span class="p">.</span><span class="n">Public</span> <span class="p">|</span> <span class="n">MethodAttributes</span><span class="p">.</span><span class="n">Virtual</span><span class="p">,</span>
         <span class="n">m</span><span class="p">.</span><span class="n">ReturnType</span><span class="p">,</span>
         <span class="n">parameters</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">p</span> <span class="p">=&gt;</span> <span class="n">p</span><span class="p">.</span><span class="n">ParameterType</span><span class="p">).</span><span class="n">ToArray</span><span class="p">());</span>
     <span class="kt">var</span> <span class="n">gen</span> <span class="p">=</span> <span class="n">methodBuilder</span><span class="p">.</span><span class="n">GetILGenerator</span><span class="p">();</span>
@@ -408,7 +408,7 @@
     <span class="n">c</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="p">{</span>
       <span class="n">Biscuit</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Eats</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">Biscuit</span><span class="p">),</span>
       <span class="n">Meatballs</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Eats</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">Meatballs</span><span class="p">),</span>
-      <span class="n">You</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Eats</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">You</span><span class="p">),</span> 
+      <span class="n">You</span> <span class="p">=</span> <span class="n">c</span><span class="p">.</span><span class="n">Eats</span><span class="p">(</span><span class="n">Food</span><span class="p">.</span><span class="n">You</span><span class="p">),</span>
       <span class="n">c</span><span class="p">.</span><span class="n">Bark</span>
     <span class="p">});</span>
   <span class="n">_grid</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>

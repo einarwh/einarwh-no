@@ -1,14 +1,14 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>How to reduce bunches of things | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="How to reduce bunches of things"><meta property="og:url" content="https://einarwh.no/blog/2017/10/05/how-to-reduce-bunches-of-things/"><link rel="stylesheet" href="/bundles/de3e982eccf0/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>How to reduce bunches of things</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>How to reduce bunches of things | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="How to reduce bunches of things"><meta property="og:url" content="https://einarwh.no/blog/2017/10/05/how-to-reduce-bunches-of-things/"><link rel="stylesheet" href="/bundles/42324ee5f62e/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>How to reduce bunches of things</h1>
 <p class="blog-post-date">October 5, 2017</p>
 <p>So there you are, a pragmatic C# programmer out to provide business value for your end users and all that stuff. That’s great.</p>
 <p>One of the (admittedly many) things you might want to do is reduce a bunch of things of some type into a single thing of that type. For instance, you might want to add a bunch of numbers together, or concatinate a bunch of strings and so on. How would you do that? (Assuming there’s no built-in <code>Aggregate</code> method available, that is.) Well, you’d write a <code>Reduce</code> function, right? And since we haven’t specified in advance what kinds of things we should reduce, we better make it generic. So it could work on an <code>IEnumerable&lt;T&gt;</code> of things.</p>
 <p>Now how should the actual reduction take place? An obvious idea is to do it stepwise. It’s both a good problem solving strategy in general, and kind of necessary when dealing with an <code>IEnumerable</code>. For that to work, though, you need some way of taking two values and combining them to produce a single value. So <code>Reduce</code> needs to be a higher-order function. The caller should pass in a <code>combine</code> function, as well as some initial value to combine with the first element. And then the completed function might look something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">combine</span><span class="p">,</span> 
-  <span class="n">T</span> <span class="n">initialValue</span><span class="p">)</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">combine</span><span class="p">,</span>
+  <span class="n">T</span> <span class="n">initialValue</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">T</span> <span class="n">result</span> <span class="p">=</span> <span class="n">initialValue</span><span class="p">;</span>
-  <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">t</span> <span class="k">in</span> <span class="n">things</span><span class="p">)</span> 
+  <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">t</span> <span class="k">in</span> <span class="n">things</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="n">result</span> <span class="p">=</span> <span class="n">combine</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">t</span><span class="p">);</span>
   <span class="p">}</span>
@@ -24,7 +24,7 @@
   <span class="k">new</span> <span class="n">List</span> <span class="p">{</span> <span class="m">1</span> <span class="p">},</span>
   <span class="k">new</span> <span class="n">List</span> <span class="p">{</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span> <span class="p">}</span>
 <span class="p">};</span>
-<span class="kt">var</span> <span class="n">sum</span> <span class="p">=</span> <span class="n">lists</span><span class="p">.</span><span class="n">Reduce</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">=&gt;</span> 
+<span class="kt">var</span> <span class="n">sum</span> <span class="p">=</span> <span class="n">lists</span><span class="p">.</span><span class="n">Reduce</span><span class="p">((</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">=&gt;</span>
   <span class="p">{</span>
     <span class="kt">var</span> <span class="n">list</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">();</span>
     <span class="n">list</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
@@ -47,8 +47,8 @@
 <span class="p">}</span>
 </code></pre>
 <p>And we can modify our <code>Reduce</code> function to work with semigroups, which <em>by definition</em> guarantees that the <code>Combine</code> function is associative.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="n">Reduce</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span> 
-  <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">semigroup</span><span class="p">,</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="n">Reduce</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span>
+  <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">semigroup</span><span class="p">,</span>
   <span class="n">T</span> <span class="n">initialValue</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">T</span> <span class="n">result</span> <span class="p">=</span> <span class="n">initialValue</span><span class="p">;</span>
@@ -78,15 +78,15 @@
 
 <span class="k">class</span> <span class="nc">StringSemigroup</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="nf">Combine</span><span class="p">(</span><span class="kt">string</span> <span class="n">a</span><span class="p">,</span> <span class="kt">string</span> <span class="n">b</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="kt">string</span> <span class="nf">Combine</span><span class="p">(</span><span class="kt">string</span> <span class="n">a</span><span class="p">,</span> <span class="kt">string</span> <span class="n">b</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">return</span> <span class="n">a</span> <span class="p">+</span> <span class="n">b</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">class</span> <span class="nc">ListSemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;</span> 
+<span class="k">class</span> <span class="nc">ListSemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="n">List</span> <span class="nf">Combine</span><span class="p">(</span><span class="n">List</span> <span class="n">a</span><span class="p">,</span> <span class="n">List</span> <span class="n">b</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="n">List</span> <span class="nf">Combine</span><span class="p">(</span><span class="n">List</span> <span class="n">a</span><span class="p">,</span> <span class="n">List</span> <span class="n">b</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">();</span>
     <span class="n">result</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
@@ -97,7 +97,7 @@
 
 <span class="k">class</span> <span class="nc">FuncSemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;&gt;</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">Combine</span><span class="p">(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">g</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">Combine</span><span class="p">(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">g</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">return</span> <span class="n">it</span> <span class="p">=&gt;</span> <span class="n">g</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">it</span><span class="p">));</span>
   <span class="p">}</span>
@@ -106,7 +106,7 @@
 <p>So that’s quite nice. We can rely on meaningful and precise abstractions to give us some guarantees in our programs.</p>
 <p>There is still a small problem when working with semigroups for reduction though. What should the initial value be? We really just want to reduce a bunch of values of some type, we don’t want to be bothered with some additional value.</p>
 <p>One approach, I guess, would be to just pick the first value and then perform reduce on the rest.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span>
   <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">semigroup</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">return</span> <span class="n">things</span><span class="p">.</span><span class="n">Skip</span><span class="p">(</span><span class="m">1</span><span class="p">).</span><span class="n">Reduce</span><span class="p">(</span><span class="n">semigroup</span><span class="p">,</span> <span class="n">things</span><span class="p">.</span><span class="n">First</span><span class="p">();</span>
@@ -116,7 +116,7 @@
 <p>What would be useful is some sort of harmless value that we could combine with any other value and just end up with the other value. So we could just use that magical value as the initial value for our <code>Reduce</code>.</p>
 <p>Luckily, it turns out that there are such magical values for all the semigroups we’ve looked at. In fact, we’ve seen two such values already. For integers under addition, it’s zero. For lists under concatination, it’s the empty list. But there are others. For integers under multiplication, it’s one. For strings under concatination, it’s the empty string. And for functions under composition, it’s the identity function, which just returns whatever value you hand it. Now if you can provide such a value, which is called the unit value, for your semigroup, you get what the mathematicians call a <em>monoid</em>. It’s another intensely unfamiliar-sounding name, but again the meaning is very precise.</p>
 <p>We can represent monoids in our programs by introducing another interface:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">interface</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">interface</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">ISemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
 <span class="p">{</span>
   <span class="n">T</span> <span class="n">Unit</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
@@ -126,14 +126,14 @@
 </code></pre>
 <p>This just says that the unit value is magical in the sense we outlined. We can combine it with any value <code>t</code> any way we want, and we end up with <code>t</code>.</p>
 <p>Now we can write a new <code>Reduce</code> function that works on monoids:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">T</span> <span class="nf">Reduce</span><span class="p">(</span><span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">things</span><span class="p">,</span>
   <span class="n">IMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">monoid</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">return</span> <span class="n">things</span><span class="p">.</span><span class="n">Reduce</span><span class="p">(</span><span class="n">monoid</span><span class="p">,</span> <span class="n">monoid</span><span class="p">.</span><span class="n">Unit</span><span class="p">);</span>
 <span class="p">}</span>
 </code></pre>
 <p>This is quite nice, because we don’t have to worry any more about whether or not the bunch of things is empty. We can proceed to implement concrete monoids that we might want to use.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">IntegerUnderAdditionMonoid</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">IntegerUnderAdditionMonoid</span>
   <span class="p">:</span> <span class="n">IntegerUnderAdditionSemigroup</span><span class="p">,</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="kt">int</span> <span class="n">Unit</span>
@@ -142,7 +142,7 @@
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">class</span> <span class="nc">IntegerUnderMultiplicationMonoid</span> 
+<span class="k">class</span> <span class="nc">IntegerUnderMultiplicationMonoid</span>
   <span class="p">:</span> <span class="n">IntegerUnderMultiplicationSemigroup</span><span class="p">,</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="kt">int</span> <span class="n">Unit</span>
@@ -159,7 +159,7 @@
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">class</span> <span class="nc">ListMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> 
+<span class="k">class</span> <span class="nc">ListMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
   <span class="p">:</span> <span class="n">ListSemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;,</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;&gt;</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Unit</span>
@@ -170,7 +170,7 @@
 
 <span class="k">class</span> <span class="nc">FuncMonoid</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">:</span> <span class="n">FuncSemigroup</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;,</span> <span class="n">IMonoid</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;&gt;</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">Unit</span> 
+  <span class="k">public</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">Unit</span>
   <span class="p">{</span>
     <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span><span class="p">;</span> <span class="p">}</span>
   <span class="p">}</span>

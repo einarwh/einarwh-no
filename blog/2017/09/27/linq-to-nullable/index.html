@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>LINQ to Nullable | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="LINQ to Nullable"><meta property="og:url" content="https://einarwh.no/blog/2017/09/27/linq-to-nullable/"><link rel="stylesheet" href="/bundles/de3e982eccf0/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>LINQ to Nullable</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>LINQ to Nullable | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="LINQ to Nullable"><meta property="og:url" content="https://einarwh.no/blog/2017/09/27/linq-to-nullable/"><link rel="stylesheet" href="/bundles/42324ee5f62e/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>LINQ to Nullable</h1>
 <p class="blog-post-date">September 27, 2017</p>
 <p>Things got a bit out of hand today.</p>
 <p>It all started when I added a point to the agenda for our backend team meeting saying I’d explain real quick what a functor is - or at least what my understanding of what a functor is is. And so I did.</p>
@@ -7,7 +7,7 @@
 <p>To illustrate, I explained that <code>Nullable&lt;T&gt;</code> is a functor - or at least it should be. And it would be, if we defined the appropriate mapping function for <code>Nullable&lt;T&gt;</code>. So I wrote the following on the whiteboard:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="k">class</span> <span class="nc">NullableExtensions</span> <span class="p">{</span>
   <span class="k">public</span> <span class="k">static</span> <span class="n">TTarget</span><span class="p">?</span> <span class="n">Select</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TTarget</span><span class="p">&gt;(</span>
-      <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span> 
+      <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span>
       <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TTarget</span><span class="p">&gt;</span> <span class="n">selector</span><span class="p">)</span>
     <span class="k">where</span> <span class="n">TSource</span> <span class="p">:</span> <span class="k">struct</span>
     <span class="nc">where</span> <span class="n">TTarget</span> <span class="p">:</span> <span class="k">struct</span>
@@ -36,7 +36,7 @@
 </code></pre>
 <p>And it worked, which I thought was pretty cool. I consulted the C# specification and found that as long as you implement methods of appropriate names and signatures, you can use the LINQ query syntax. And so I decided to let functors be functors and just see what I could do with <code>Nullable</code>s using LINQ. So I wrote this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">Where</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span> 
+    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span>
     <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="kt">bool</span><span class="p">&gt;</span> <span class="n">predicate</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TSource</span> <span class="p">:</span> <span class="k">struct</span>
   <span class="p">{</span>
@@ -55,7 +55,7 @@
 <p>Which will return <code>null</code> unless it’s passed a <code>Nullable</code> that wraps a <code>DateTime</code> representing a Friday. Useful.</p>
 <p>It should have stopped there, but the C# specification is full of examples of expressions written in query syntax and what they’re translated into. For instance, I found that implementing this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">TTarget</span><span class="p">?</span> <span class="n">SelectMany</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TTarget</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span> 
+    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span>
     <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TTarget</span><span class="p">?&gt;</span> <span class="n">selector</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TSource</span> <span class="p">:</span> <span class="k">struct</span>
   <span class="nc">where</span> <span class="n">TTarget</span> <span class="p">:</span> <span class="k">struct</span>
@@ -64,8 +64,8 @@
 <span class="p">}</span>
 
 <span class="k">public</span> <span class="k">static</span> <span class="n">TResult</span><span class="p">?</span> <span class="n">SelectMany</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TIntermediate</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span> 
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TIntermediate</span><span class="p">?&gt;</span> <span class="n">selector</span><span class="p">,</span> 
+    <span class="k">this</span> <span class="n">TSource</span><span class="p">?</span> <span class="n">t</span><span class="p">,</span>
+    <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TIntermediate</span><span class="p">?&gt;</span> <span class="n">selector</span><span class="p">,</span>
     <span class="n">Func</span><span class="p">&lt;</span><span class="n">TSource</span><span class="p">,</span> <span class="n">TIntermediate</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;</span> <span class="n">resultSelector</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TSource</span> <span class="p">:</span> <span class="k">struct</span>
   <span class="nc">where</span> <span class="n">TIntermediate</span> <span class="p">:</span> <span class="k">struct</span>

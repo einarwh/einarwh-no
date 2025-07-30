@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Proper JSON and property bags | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Proper JSON and property bags"><meta property="og:url" content="https://einarwh.no/blog/2020/05/13/proper-json-and-property-bags/"><link rel="stylesheet" href="/bundles/de3e982eccf0/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Proper JSON and property bags</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Proper JSON and property bags | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Proper JSON and property bags"><meta property="og:url" content="https://einarwh.no/blog/2020/05/13/proper-json-and-property-bags/"><link rel="stylesheet" href="/bundles/42324ee5f62e/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Proper JSON and property bags</h1>
 <p class="blog-post-date">May 13, 2020</p>
 <p>I recently wrote a blog post where I argued that “JSON serialization” as commonly practiced in the software industry is much too ambitious. This is the case at least in the .NET and Java ecosystems. I can’t really speak to the state of affairs in other ecosystems, although I note that the amount of human folly appears to be a universal constant much like gravity.</p>
 <p>The problem is that so-called “JSON serializers” handle not just serialization and deserialization of JSON, they tend to support arbitrary mapping between the JSON model and some other data model as well. This additional mapping, I argued, causes much unnecessary complexity and pain. Whereas serialization and deserialization of JSON is a “closed” problem with bounded complexity, arbitrary mapping between data models is an “open” problem with unbounded complexity. Hence JSON serializers should focus on the former and let us handle the latter by hand.</p>
@@ -25,12 +25,12 @@
 <pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span>
   <span class="nt">"_state"</span><span class="p">:</span> <span class="s2">"active"</span><span class="p">,</span>
   <span class="nt">"unpaidItems"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span> 
+    <span class="p">{</span>
       <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"1bcd"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span> 
+      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span>
     <span class="p">},</span>
-    <span class="p">{</span> 
-      <span class="nt">"id"</span> <span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
+    <span class="p">{</span>
+      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
       <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"widget"</span><span class="p">,</span>
       <span class="nt">"description"</span><span class="p">:</span> <span class="s2">"A very useful item"</span>
     <span class="p">}</span>
@@ -41,12 +41,12 @@
 <pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span>
   <span class="nt">"_state"</span><span class="p">:</span> <span class="s2">"paid"</span><span class="p">,</span>
   <span class="nt">"paidItems"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span> 
+    <span class="p">{</span>
       <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"1bcd"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span> 
+      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span>
     <span class="p">},</span>
-    <span class="p">{</span> 
-      <span class="nt">"id"</span> <span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
+    <span class="p">{</span>
+      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
       <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"widget"</span><span class="p">,</span>
       <span class="nt">"description"</span><span class="p">:</span> <span class="s2">"A very useful item"</span>
     <span class="p">}</span>
@@ -72,14 +72,14 @@
 <p>We’ll look at serialization first. Here’s how we might create a paid cart as a <code>JObject</code> and use it to serialize to the appropriate JSON.</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartObject</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">(</span>
   <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"_state"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)),</span>
-  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"paidItems"</span><span class="p">,</span> 
+  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"paidItems"</span><span class="p">,</span>
     <span class="k">new</span> <span class="nf">JArray</span><span class="p">(</span>
       <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
         <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"id"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"1bcd"</span><span class="p">)),</span>
         <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"gizmo"</span><span class="p">))),</span>
       <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
         <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"id"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"3cdf"</span><span class="p">)),</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"widget"</span><span class="p">)),</span> 
+        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"widget"</span><span class="p">)),</span>
         <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"description"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"A very useful item"</span><span class="p">))))),</span>
   <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"payment"</span><span class="p">,</span>
     <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
@@ -92,11 +92,11 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
 <span class="s">  ""_state"": ""paid"",</span>
 <span class="s">  ""paidItems"": [</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo"" </span>
+<span class="s">      ""title"": ""gizmo""</span>
 <span class="s">    },</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"" : ""3cdf"",</span>
 <span class="s">      ""title"": ""widget"",</span>
 <span class="s">      ""description"": ""A very useful item""</span>
@@ -130,9 +130,9 @@
 <p>Even with those restrictions, we still have many choices to make. In fact, it’s going to be a little difficult to achieve the results we want without breaking the no-configuration goal.</p>
 <p>First we’re going to have to make some decisions about property names. In C#, the convention is to use PascalCase for properties, whereas our JSON documents use camelCase. This is a bit of a “when in Rome” issue, with the complicating matter that there are two Romes. There are two possible resolutions to this problem.</p>
 <p>One option is to combine an assumption with an admission. That is, we can 1) make the assumption that our JSON documents only will contain “benign” property names that don’t contain whitespace or control characters and 2) accept that our DTOs will have property names that violate the sensitivies of a C# style checker. That will yield the following set of DTOs:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="n">_state</span> <span class="p">=</span> <span class="n">state</span><span class="p">;</span>
   <span class="p">}</span>
@@ -159,14 +159,14 @@
   <span class="k">public</span> <span class="kt">string</span> <span class="n">timestamp</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">Item</span> 
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Item</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">title</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">description</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">Money</span> 
+<span class="k">public</span> <span class="k">class</span> <span class="nc">Money</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="kt">float</span> <span class="n">amount</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">currency</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
@@ -174,13 +174,13 @@
 </code></pre>
 <p>Depending on your sensitivies, you may have run away screaming at this point. A benefit however, is that it works reasonably well out of the box. The property names in the DTOs and in the JSON are identical, which makes sense since the DTOs are a representation of the same property bags we find in the JSON. In this scenario, coupling of names is actually a good thing.</p>
 <p>Another option is to add <em>custom attributes</em> to the properties of our DTOs. Custom attributes are a mechanism that some JSON serializers employ to let us create an explicit mapping between property names in our data model and property names in the JSON document. This clearly is a violation of the no-configuration rule, though. Do it at your own peril.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span>
 <span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span> 
+  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="n">State</span> <span class="p">=</span> <span class="n">state</span><span class="p">;</span>
   <span class="p">}</span>
-<span class="na">  </span>
+
 <span class="na">  [JsonProperty("_state")]</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">State</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
@@ -201,7 +201,7 @@
 <span class="k">class</span> <span class="nc">PaidCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
 <span class="p">{</span>
   <span class="k">public</span> <span class="nf">PaidCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)</span> <span class="p">{}</span>
-<span class="na">    </span>
+
 <span class="na">  [JsonProperty("paidItems")]</span>
   <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">PaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
 
@@ -224,7 +224,7 @@
   <span class="k">public</span> <span class="kt">string</span> <span class="n">Description</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">class</span> <span class="nc">Money</span> 
+<span class="k">class</span> <span class="nc">Money</span>
 <span class="p">{</span>
 <span class="na">  [JsonProperty("amount")]</span>
   <span class="k">public</span> <span class="kt">double</span> <span class="n">Amount</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
@@ -289,11 +289,11 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
 <span class="s">  ""_state"": ""paid"",</span>
 <span class="s">  ""paidItems"": [</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo"" </span>
+<span class="s">      ""title"": ""gizmo""</span>
 <span class="s">    },</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"" : ""3cdf"",</span>
 <span class="s">      ""title"": ""widget"",</span>
 <span class="s">      ""description"": ""A very useful item""</span>
@@ -319,7 +319,7 @@
 </code></pre>
 <p>But the poor JSON serializer can’t do that, not without help! The problem is that the JSON serializer doesn’t know which subclass of <code>_ShoppingCart_</code> to instantiate. In fact, it doesn’t even know that the subclasses exist.</p>
 <p>We have three choices at this point. First, we can create a third variation of our DTO, one that doesn’t have this problem. We could just the collapse our fancy class hierarchy and use something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">ShoppingCart</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">ShoppingCart</span>
 <span class="p">{</span>
 <span class="na">  [JsonProperty("_state")]</span>
   <span class="k">public</span> <span class="kt">string</span> <span class="n">State</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
@@ -375,11 +375,11 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
 <span class="s">  ""_state"": ""paid"",</span>
 <span class="s">  ""paidItems"": [</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo"" </span>
+<span class="s">      ""title"": ""gizmo""</span>
 <span class="s">    },</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"" : ""3cdf"",</span>
 <span class="s">      ""title"": ""widget"",</span>
 <span class="s">      ""description"": ""A very useful item""</span>
@@ -398,9 +398,9 @@
     <span class="p">{</span>
       <span class="n">_state</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
       <span class="n">paidItems</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span>
-      <span class="k">new</span> <span class="p">{</span> 
-        <span class="n">id</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span> 
-        <span class="n">title</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span> 
+      <span class="k">new</span> <span class="p">{</span>
+        <span class="n">id</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
+        <span class="n">title</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
         <span class="n">description</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span>
       <span class="p">}</span>
     <span class="p">},</span>
@@ -456,11 +456,11 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
 <span class="s">  ""_state"": ""paid"",</span>
 <span class="s">  ""paidItems"": [</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo"" </span>
+<span class="s">      ""title"": ""gizmo""</span>
 <span class="s">    },</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"" : ""3cdf"",</span>
 <span class="s">      ""title"": ""widget"",</span>
 <span class="s">      ""description"": ""A very useful item""</span>
@@ -492,16 +492,16 @@
   <span class="p">{</span>
     <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
   <span class="p">}</span>
-  
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> 
-    <span class="n">Type</span> <span class="n">objectType</span><span class="p">,</span> 
-    <span class="kt">object</span> <span class="n">existingValue</span><span class="p">,</span> 
+
+  <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
+    <span class="n">Type</span> <span class="n">objectType</span><span class="p">,</span>
+    <span class="kt">object</span> <span class="n">existingValue</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">return</span> <span class="nf">ReadValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
   <span class="p">}</span>
-  
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> 
+
+  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">StartObject</span><span class="p">)</span>
@@ -517,8 +517,8 @@
       <span class="k">return</span> <span class="nf">ReadSimpleValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
     <span class="p">}</span>
   <span class="p">}</span>
-  
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadObjectValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> 
+
+  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadObjectValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
@@ -536,7 +536,7 @@
     <span class="k">return</span> <span class="n">dictionary</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadArrayValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> 
+  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadArrayValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
@@ -549,16 +549,16 @@
     <span class="k">return</span> <span class="n">list</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadSimpleValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span> 
+  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadSimpleValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kt">var</span> <span class="n">val</span> <span class="p">=</span> <span class="n">serializer</span><span class="p">.</span><span class="n">Deserialize</span><span class="p">(</span><span class="n">reader</span><span class="p">);</span>
     <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
     <span class="k">return</span> <span class="n">val</span><span class="p">;</span>
   <span class="p">}</span>
-  
-  <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">WriteJson</span><span class="p">(</span><span class="n">JsonWriter</span> <span class="n">writer</span><span class="p">,</span> 
-    <span class="kt">object</span> <span class="k">value</span><span class="p">,</span> 
+
+  <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">WriteJson</span><span class="p">(</span><span class="n">JsonWriter</span> <span class="n">writer</span><span class="p">,</span>
+    <span class="kt">object</span> <span class="k">value</span><span class="p">,</span>
     <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nf">NotImplementedException</span><span class="p">();</span>
@@ -570,11 +570,11 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
 <span class="s">  ""_state"": ""paid"",</span>
 <span class="s">  ""paidItems"": [</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo"" </span>
+<span class="s">      ""title"": ""gizmo""</span>
 <span class="s">    },</span>
-<span class="s">    { </span>
+<span class="s">    {</span>
 <span class="s">      ""id"" : ""3cdf"",</span>
 <span class="s">      ""title"": ""widget"",</span>
 <span class="s">      ""description"": ""A very useful item""</span>

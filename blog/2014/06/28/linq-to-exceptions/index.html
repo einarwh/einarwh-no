@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>LINQ to Exceptions | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="LINQ to Exceptions"><meta property="og:url" content="https://einarwh.no/blog/2014/06/28/linq-to-exceptions/"><link rel="stylesheet" href="/bundles/de3e982eccf0/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>LINQ to Exceptions</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>LINQ to Exceptions | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="LINQ to Exceptions"><meta property="og:url" content="https://einarwh.no/blog/2014/06/28/linq-to-exceptions/"><link rel="stylesheet" href="/bundles/42324ee5f62e/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>LINQ to Exceptions</h1>
 <p class="blog-post-date">June 28, 2014</p>
 <p>Lately I’ve been thinking about the mundane task of <em>exception handling</em>. Remarkably unsexy, and yet completely mandatory. There’s no escape from handling the exceptions that may (and therefore will) occur in your application, unless you want it to crash or misbehave regularly.</p>
 <p>Proper exception handling can be a chore anywhere in your application, but in particular at integration points. Whenever your application needs to communicate with some external service, any number of things can go wrong, at various levels in the stack - from application level errors to network problems. We need to be able to cope with all these different kinds of errors, and hence we surround each service call with a veritable flood of exception handlers. That sort of works, but there are problems - first, the actual service is drowning amidst all the exception handling, and second, we get a lot of code duplication, since we tend to handle many kinds of exceptions in the same way for all service calls.</p>
@@ -34,7 +34,7 @@
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">TR</span> <span class="n">Call</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nf">f</span><span class="p">();</span>
-  <span class="p">}</span> 
+  <span class="p">}</span>
   <span class="k">catch</span> <span class="p">(</span><span class="n">SomeException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Dull code.</span>
   <span class="p">}</span>
@@ -71,15 +71,15 @@
 </ol>
 <p>As an answer to the two first problems, you could pass in each exception handler to the <strong>Call</strong> method! Then you would have a method like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">TR</span> <span class="n">Call</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span>
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">SomeException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h1</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">SomeOtherException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h2</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">YetAnotherException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h3</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">Exception</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h4</span><span class="p">)</span> 
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">SomeException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h1</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">SomeOtherException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h2</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">YetAnotherException</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h3</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">Exception</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h4</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nf">f</span><span class="p">();</span>
-  <span class="p">}</span> 
+  <span class="p">}</span>
   <span class="k">catch</span> <span class="p">(</span><span class="n">SomeException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nf">h1</span><span class="p">(</span><span class="n">ex</span><span class="p">);</span>
   <span class="p">}</span>
@@ -100,7 +100,7 @@
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeException,</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeOtherException,</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle YetAnotherException,</span>
-    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle Exception </span>
+    <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle Exception</span>
   <span class="p">);</span>
 <span class="p">}</span>
 </code></pre>
@@ -112,7 +112,7 @@
        <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeOtherException,</span>
        <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle YetAnotherException,</span>
        <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle Exception</span>
-    <span class="p">);</span>    
+    <span class="p">);</span>
   <span class="p">}</span>
   <span class="k">catch</span> <span class="p">(</span><span class="n">IdiosyncraticException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Do something.</span>
@@ -121,27 +121,27 @@
 </code></pre>
 <p>Which just might be the worst code ever, and also has the idiosyncracy that the additional catch-handler will only be reached if the <strong>Exception</strong> handler rethrows. Horrible. Better, perhaps, to put it inside?</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Quux</span> <span class="nf">SafeMethod3</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="nf">Call</span><span class="p">(()</span> <span class="p">=&gt;</span> 
-    <span class="p">{</span> 
-      <span class="k">try</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Method3</span><span class="p">();</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IdiosyncraticException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">ex</span><span class="p">;</span> <span class="p">}</span> 
+  <span class="k">return</span> <span class="nf">Call</span><span class="p">(()</span> <span class="p">=&gt;</span>
+    <span class="p">{</span>
+      <span class="k">try</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Method3</span><span class="p">();</span> <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IdiosyncraticException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">ex</span><span class="p">;</span> <span class="p">}</span>
     <span class="p">},</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeException,</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle SomeOtherException,</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle YetAnotherException,</span>
     <span class="n">ex</span> <span class="p">=&gt;</span> <span class="c1">// Handle Exception</span>
-  <span class="p">);</span>    
+  <span class="p">);</span>
 <span class="p">}</span>
 </code></pre>
 <p>Well yes, slightly better, but still pretty horrible, and much worse than just suffering the duplication in the first place. But maybe we’ve learned something. What we need is composition - our current solution doesn’t compose at all. we need to be able to put together exactly the exception handlers we need for each method, while at the same time avoiding repetition. The problem is in some sense the coupling between the exception handlers. What if we tried a different approach, handling a single exception at a time?</p>
 <p>We could have a less ambitious <strong>Call</strong>-method, that would handle just a single type of exception for a method. Like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">TR</span> <span class="n">Call</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">,</span> <span class="n">TE</span><span class="p">&gt;(</span>
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span> 
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span>
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TE</span> <span class="p">:</span> <span class="n">Exception</span>
 <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nf">f</span><span class="p">();</span>
-  <span class="p">}</span> 
+  <span class="p">}</span>
   <span class="k">catch</span> <span class="p">(</span><span class="n">TE</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nf">h</span><span class="p">(</span><span class="n">ex</span><span class="p">);</span>
   <span class="p">}</span>
@@ -150,7 +150,7 @@
 <p>Now we have a single generic exception handler <strong>h</strong>. Note that when we constrain the type variable <strong>TE</strong> to be a subclass of <strong>Exception</strong>, we can use <strong>TE</strong> in the catch clause, to select precisely the exceptions we would like to catch. Then we could write a method like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Frob</span> <span class="nf">SafeMethod4a</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">return</span> <span class="nf">Call</span><span class="p">(</span>
-    <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">Frob</span><span class="p">(),</span> 
+    <span class="p">()</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">Frob</span><span class="p">(),</span>
     <span class="p">(</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">);</span>
 <span class="p">}</span>
 </code></pre>
@@ -170,12 +170,12 @@
 </code></pre>
 <p>You get the picture. Of course, we can collapse all three to a single method if we want to:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Frob</span> <span class="nf">SafeMethod4</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">return</span> 
-    <span class="nf">Call</span><span class="p">(()</span> <span class="p">=&gt;</span> 
-      <span class="n">Call</span><span class="p">(()</span> <span class="p">=&gt;</span> 
-        <span class="n">Call</span><span class="p">(()</span> <span class="p">=&gt;</span> 
-          <span class="n">FrobFactory</span><span class="p">.</span><span class="n">Create</span><span class="p">(),</span> 
-          <span class="p">(</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">),</span> 
+  <span class="k">return</span>
+    <span class="nf">Call</span><span class="p">(()</span> <span class="p">=&gt;</span>
+      <span class="n">Call</span><span class="p">(()</span> <span class="p">=&gt;</span>
+        <span class="n">Call</span><span class="p">(()</span> <span class="p">=&gt;</span>
+          <span class="n">FrobFactory</span><span class="p">.</span><span class="n">Create</span><span class="p">(),</span>
+          <span class="p">(</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">),</span>
         <span class="p">(</span><span class="n">InvalidOperationException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">),</span>
       <span class="p">(</span><span class="n">FormatException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">);</span>
 <span class="p">}</span>
@@ -201,7 +201,7 @@
 <span class="p">{</span>
   <span class="k">static</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Catch</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">,</span> <span class="n">TE</span><span class="p">&gt;(</span>
     <span class="k">this</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span>
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span> 
+    <span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TE</span> <span class="p">:</span> <span class="n">Exception</span>
   <span class="p">{</span>
     <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
@@ -217,7 +217,7 @@
 <p>So the trick is to return a new closure that encapsulates calling the original closure and the exception handling. Then we can write code like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Frob</span> <span class="nf">ExtSafeMethod4</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">Func</span><span class="p">&lt;</span><span class="n">Frob</span><span class="p">&gt;</span> <span class="n">it</span> <span class="p">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="n">FrobFactory</span><span class="p">.</span><span class="n">Create</span><span class="p">();</span>
-  <span class="kt">var</span> <span class="n">safe</span> <span class="p">=</span> 
+  <span class="kt">var</span> <span class="n">safe</span> <span class="p">=</span>
     <span class="n">it</span><span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">)</span>
       <span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">InvalidOperationException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">)</span>
       <span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">FormatException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">);</span>
@@ -231,7 +231,7 @@
 <span class="p">}</span>
 
 <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Protect</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">it</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> 
+  <span class="k">return</span>
     <span class="n">it</span><span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">)</span>
       <span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">InvalidOperationException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">)</span>
       <span class="p">.</span><span class="n">Catch</span><span class="p">((</span><span class="n">FormatException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">);</span>
@@ -251,7 +251,7 @@
 <p>And besides, we still haven’t talked about Linq. An alternative (and attractive) solution to our current fluent interface is to attach a sequence of catch-handlers at once. Something like this:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="c1">// Unfortunately, this won't compile.</span>
 <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Protect</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">it</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> 
+  <span class="k">return</span>
     <span class="n">it</span><span class="p">.</span><span class="n">CatchAll</span><span class="p">(</span>
       <span class="p">(</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">,</span>
       <span class="p">(</span><span class="n">InvalidOperationException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...</span> <span class="p">,</span>
@@ -259,8 +259,8 @@
 <span class="p">}</span>
 </code></pre>
 <p>However, it’s surprisingly difficult to provide a suitable type for that sequence of catch-handlers - in fact, the C# compiler fails to do so! The problem is that delegates are contravariant in their parameters, which means that a delegate <strong>D1</strong> is considered a <em>subtype</em> of delegate <strong>D2</strong> if the parameters of <strong>D1</strong> are <em>supertypes</em> of the parameters of <strong>D2</strong>. That’s all a bit abstract, so perhaps an example will help:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Action</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;</span> <span class="n">d1</span> <span class="p">=</span> <span class="p">(</span><span class="kt">object</span> <span class="n">o</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{};</span> 
-<span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">d2</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{};</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Action</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;</span> <span class="n">d1</span> <span class="p">=</span> <span class="p">(</span><span class="kt">object</span> <span class="n">o</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{};</span>
+<span class="n">Action</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">d2</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span> <span class="n">s</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{};</span>
 
 <span class="n">d1</span> <span class="p">=</span> <span class="n">d2</span><span class="p">;</span> <span class="c1">// This won't compile.</span>
 <span class="n">d2</span> <span class="p">=</span> <span class="n">d1</span><span class="p">;</span> <span class="c1">// This is OK.</span>
@@ -268,14 +268,14 @@
 <p>To make sense of the abstract description above, assume that <strong>D1</strong> is <strong>Action&lt;object&gt;</strong> and <strong>D2</strong> is <strong>Action&lt;string&gt;</strong>. Since the <strong>D1</strong> parameter (<strong>object</strong>) is a supertype of the <strong>D2</strong> parameter (<strong>string</strong>), it follows that <strong>D1</strong> is a subtype of <strong>D2</strong> - and not the other way around, as we might have guessed. This is why the C# compiler won’t let us assign a <strong>D2</strong> instance to a <strong>D1</strong> reference.</p>
 <p>The implication is that the C# compiler will fail to find a type that will reconcile the catch handlers above. In particular, due to the contravariance of delegate parameters, we cannot type the sequence as <strong>Func&lt;Exception, TR&gt;</strong>, since neither <strong>Func&lt;NullReferenceException, TR&gt;</strong>, nor <strong>Func&lt;InvalidOperationException, TR&gt;</strong>, nor <strong>Func&lt;FormatException, TR&gt;</strong> are assignable to <strong>Func&lt;Exception, TR&gt;</strong>. It would go the other way around: we could assign a <strong>Func&lt;Exception, TR&gt;</strong> to all three of the other types, but which one should the compiler pick? If it (arbitrarily) picked <strong>Func&lt;&lt;NullReferenceException, TR&gt;</strong>, clearly it wouldn’t work for the two other delegates - and all other choices have the same problem.</p>
 <p>So we’re stuck. Sort of. The only solution we have is to <em>hide</em> the exception type somehow, so that we don’t have to include the exception type in the type of the sequence. Now how do we do that? Well, in some sense, we’ve already seen an example of how to do that: we hide the exception handling (and the type) inside a closure. So all we need is some way to convert an exception handler to a simple transformation function that doesn’t care about the type of the exception itself. Like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;&gt;</span> <span class="n">Encapsulate</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">,</span> <span class="n">TE</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span> 
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;&gt;</span> <span class="n">Encapsulate</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">,</span> <span class="n">TE</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TE</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">h</span><span class="p">)</span>
   <span class="k">where</span> <span class="n">TE</span> <span class="p">:</span> <span class="n">Exception</span>
 <span class="p">{</span>
-  <span class="k">return</span> <span class="n">f</span> <span class="p">=&gt;</span> <span class="p">()</span> <span class="p">=&gt;</span>  
+  <span class="k">return</span> <span class="n">f</span> <span class="p">=&gt;</span> <span class="p">()</span> <span class="p">=&gt;</span>
   <span class="p">{</span>
     <span class="k">try</span> <span class="p">{</span>
       <span class="k">return</span> <span class="nf">f</span><span class="p">();</span>
-    <span class="p">}</span> 
+    <span class="p">}</span>
     <span class="k">catch</span> <span class="p">(</span><span class="n">TE</span> <span class="n">ex</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">return</span> <span class="nf">h</span><span class="p">(</span><span class="n">ex</span><span class="p">);</span>
     <span class="p">};</span>
@@ -285,7 +285,7 @@
 <p>So what is this thing? It’s a method that encapsulates the catch-handler inside a closure. This closure will take as input a closure of type <strong>Func&lt;TR&gt;</strong> and produce as output another closure of type <strong>Func&lt;TR&gt;</strong>. In the process, we have hidden the type <strong>TE</strong>, so that the C# compiler doesn’t have to worry about it anymore: all we have is a thing that will transform a <strong>Func&lt;TR&gt;</strong> to another <strong>Func&lt;TR&gt;</strong>.</p>
 <p>So now we can sort of accomplish what we wanted, even though it’s less than perfect.</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Protect</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">it</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> 
+  <span class="k">return</span>
     <span class="n">it</span><span class="p">.</span><span class="n">CatchAll</span><span class="p">(</span>
       <span class="n">Encapsulate</span><span class="p">((</span><span class="n">NullReferenceException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...),</span>
       <span class="n">Encapsulate</span><span class="p">((</span><span class="n">InvalidOperationException</span> <span class="n">ex</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">...),</span>
@@ -309,9 +309,9 @@
 <p>And of course we can now implement <strong>CatchAll</strong> if we want to:</p>
 <pre class="codehilite"><code class="language-csharp"><span></span><span class="k">static</span> <span class="k">class</span> <span class="nc">CatchExtensions</span>
 <span class="p">{</span>
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">CatchAll</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span>	
-    <span class="k">this</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span> 
-    <span class="k">params</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;&gt;[]</span> <span class="n">catchers</span><span class="p">)</span> 
+  <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">CatchAll</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span>
+    <span class="k">this</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">,</span>
+    <span class="k">params</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;&gt;[]</span> <span class="n">catchers</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kt">var</span> <span class="n">protect</span> <span class="p">=</span> <span class="n">catchers</span><span class="p">.</span><span class="n">Aggregate</span><span class="p">((</span><span class="n">acc</span><span class="p">,</span> <span class="n">nxt</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="n">thing</span> <span class="p">=&gt;</span> <span class="n">nxt</span><span class="p">(</span><span class="n">acc</span><span class="p">(</span><span class="n">thing</span><span class="p">)));</span>
     <span class="k">return</span> <span class="nf">protect</span><span class="p">(</span><span class="n">f</span><span class="p">);</span>
