@@ -7,14 +7,14 @@
 <p>“So what?” you may ask. How is this a problem? I’m glad you asked! Let’s take a look at an example to illustrate the consequences of overloading <span class="inline-code">?</span> to mean different things for value types and reference types.</p>
 <p>The <a href="https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable?view=net-9.0">Enumerable</a> class contains many extension methods for types that implement the <span class="inline-code">IEnumerable&lt;T&gt;</span> interface. However, it does not contain a method that corresponds to <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-listmodule.html#choose">List.choose</a> in F#! Let’s try to fix that.</p>
 <p><span class="inline-code">List.choose</span> is interesting in that it combines the effect of <span class="inline-code">map</span> and <span class="inline-code">filter</span>, or <span class="inline-code">Select</span> and <span class="inline-code">Where</span> in C#. It maps each element of a list to an optional value of some type, and then it filters based on that mapping, keeping only the genuine values as it were. In case that’s not entirely clear, my first naive attempt at writing such a method in C# should make it clearer.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="err">public static IEnumerable&lt;TR&gt; SelectNotNull&lt;T, TR&gt;(</span>
-<span class="err">    this IEnumerable&lt;T&gt; source,</span>
-<span class="err">    Func&lt;T, TR?&gt; fn)</span>
-<span class="err">{</span>
-<span class="err">    return source.Select(fn)</span>
-<span class="err">                 .Where(it =&gt; it != null)</span>
-<span class="err">                 .Cast&lt;TR&gt;();</span>
-<span class="err">}</span>
+<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">SelectNotNull</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;(</span>
+    <span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">,</span>
+    <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">?&gt;</span> <span class="n">fn</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">source</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+                 <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
+                 <span class="p">.</span><span class="n">Cast</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;();</span>
+<span class="p">}</span>
 </code></pre>
 <p>This compiles, but unfortunately it doesn’t quite work.</p>
 <p>The intention here is to call the <span class="inline-code">fn</span> function on each element, and then to filter out any null values. You’ll note that <span class="inline-code">fn</span> returns a <span class="inline-code">TR?</span> value, indicating a nullable value (for value types), or at least something that could be null (for reference types), whereas the return type of <span class="inline-code">SelectNotNull</span> is <span class="inline-code">IEnumerable&lt;TR&gt;</span>. No allowance for null there. Indeed, that’s the whole point of <span class="inline-code">SelectNotNull</span>!</p>
