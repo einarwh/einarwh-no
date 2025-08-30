@@ -51,7 +51,9 @@
                  <span class="p">.</span><span class="n">Cast</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;();</span>
 <span class="p">}</span>
 </code></pre>
-<p>So, the only thing I’ve done here is to create two copies of the exact same code, and add a different type constraint to each copy. Luckily, since type constraints are part of the signature of the method and there is no ambiguity, I am allowed to make this overload. Not only that, but it solves our problem! Now it works for both strings and ints!</p>
+<p>So, the only thing I’ve done here is to create two copies of the exact same code, and add a different type constraint to each copy. Now first, am I even allowed to do this? After all, I can’t declare methods with identical signatures in C#. But they’re not identical! They just look that way! Indeed the whole point is that constraining <span class="inline-code">TR</span> as class and struct means that <span class="inline-code">TR?</span> is interpreted to mean <span class="inline-code">TR</span> and <span class="inline-code">Nullable&lt;TR&gt;</span> respectively, creating unique overloads. The code just looks identical due to the overloaded syntax.</p>
+<blockquote>Note: I originally wrote that this overload was possible since type constraints are part of the method signature. This is inaccurate and misses the point I was trying to make :-)</blockquote>
+<p>So the compiler allows it. Not only that, but it solves our problem! Now it works for both strings and ints!</p>
 <p>If you think this is nuts, you’re right. It is. But it is also completely understandable. Now the compiler doesn’t have to choose between reference type interpretation and value type interpretation of <span class="inline-code">T?</span>. It can do both, since we’ve given it two methods to work with. The type constraint makes the choice of interpretation unambiguous.</p>
 <p>But it’s still nuts.</p>
 </body></html>
