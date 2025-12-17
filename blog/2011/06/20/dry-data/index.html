@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Dry data | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Dry data"><meta property="og:url" content="https://einarwh.no/blog/2011/06/20/dry-data/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Dry data</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Dry data | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Dry data"><meta property="og:url" content="https://einarwh.no/blog/2011/06/20/dry-data/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Dry data</h1>
 <p class="blog-post-date">June 20, 2011</p>
 <p>I’m a big proponent of the NoORM movement. Haven’t heard of it? That’s because it doesn’t exist. But it sort of does, under a different name. So-called “micro-ORMs” like <a href="https://github.com/ThatRendle/Simple.Data">Simple.Data</a>, <a href="https://github.com/DapperLib/Dapper">dapper</a> and <a href="https://github.com/FransBouma/Massive">massive</a> all belong to this category. That’s three really smart guys (unwittingly) supporting the same cause as I. Not bad. I’d say that’s the genesis of a movement right there.</p>
 <p>Unsurprisingly, NoORM means “not only ORM”. The implication is that there are scenarios where full-blown object-relational mapper frameworks like nHibernate and Entity Framework are overkill. Such frameworks really go beyond merely addressing the infamous object/relational impedence mismatch (which is arguably <a href="https://seldo.com/posts/orm_is_an_antipattern">irreconcilable</a>), to support an almost seamless experience of persistent objects stored in a relational database. To do so, they pull out the heavy guns, like the <a href="https://martinfowler.com/eaaCatalog/unitOfWork.html">Unit of Work</a> pattern from Martin Fowler’s <a href="https://martinfowler.com/books/eaa.html">Patterns of Enterprise Application Architecture</a> (One of those seminal tomes with an “on bookshelf”-to-“actually read it” ratio that’s just a little too high.)</p>
@@ -13,101 +13,101 @@
 </ol>
 <p>As it turns out, the second point is not really significant, since we’ll need database-agnostic code if we’re going to write tests. The first one is interesting though. We’ll also assume that the stored procedures will accept input parameters only. That’s going to simplify our code a great deal.</p>
 <p>Let’s start by introducing a naive client doing straight invocation of a few stored procedures in plain ol’ ADO.NET:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Client1</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">_connStr</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Client1
+{
+    private readonly string _connStr;
 
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">DbProviderFactory</span> <span class="n">_dpf</span><span class="p">;</span>
+    private readonly DbProviderFactory _dpf;
 
-    <span class="k">public</span> <span class="nf">Client1</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">)</span> <span class="p">:</span> <span class="k">this</span><span class="p">(</span><span class="n">connStr</span><span class="p">,</span> 
-      <span class="n">DbProviderFactories</span><span class="p">.</span><span class="n">GetFactory</span><span class="p">(</span><span class="s">"System.Data.SqlClient"</span><span class="p">))</span>
-    <span class="p">{}</span>
+    public Client1(string connStr) : this(connStr, 
+      DbProviderFactories.GetFactory("System.Data.SqlClient"))
+    {}
 
-    <span class="k">public</span> <span class="nf">Client1</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">,</span> <span class="n">DbProviderFactory</span> <span class="n">dpf</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_connStr</span> <span class="p">=</span> <span class="n">connStr</span><span class="p">;</span>
-        <span class="n">_dpf</span> <span class="p">=</span> <span class="n">dpf</span><span class="p">;</span>
-    <span class="p">}</span>
+    public Client1(string connStr, DbProviderFactory dpf)
+    {
+        _connStr = connStr;
+        _dpf = dpf;
+    }
 
-    <span class="k">private</span> <span class="n">DbParameter</span> <span class="nf">CreateParameter</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">,</span> <span class="kt">object</span> <span class="n">val</span><span class="p">)</span> 
-    <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateParameter</span><span class="p">();</span>
-        <span class="n">p</span><span class="p">.</span><span class="n">ParameterName</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
-        <span class="n">p</span><span class="p">.</span><span class="n">Value</span> <span class="p">=</span> <span class="n">val</span><span class="p">;</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
-    <span class="p">}</span>
+    private DbParameter CreateParameter(string name, object val) 
+    {
+        var p = _dpf.CreateParameter();
+        p.ParameterName = name;
+        p.Value = val;
+        return p;
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;</span> <span class="n">GetCompanyUsers</span><span class="p">(</span><span class="kt">string</span> <span class="n">company</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;();</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="s">"spGetCompanyUsers"</span><span class="p">;</span>
-            <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@companyName"</span><span class="p">,</span> <span class="n">company</span><span class="p">);</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
-            <span class="kt">var</span> <span class="n">reader</span> <span class="p">=</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">();</span>
-            <span class="k">while</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">())</span>
-            <span class="p">{</span>
-                <span class="kt">var</span> <span class="n">u</span> <span class="p">=</span> <span class="k">new</span> <span class="n">User</span>
-                <span class="p">{</span>
-                    <span class="n">Id</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"id"</span><span class="p">],</span>
-                    <span class="n">UserName</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"user"</span><span class="p">],</span>
-                    <span class="n">Name</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"name"</span><span class="p">],</span>
-                    <span class="n">Email</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"emailAddress"</span><span class="p">],</span>
-                    <span class="n">Phone</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"cellPhone"</span><span class="p">],</span>
-                    <span class="n">ZipCode</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">[</span><span class="s">"zip"</span><span class="p">]</span>
-                <span class="p">};</span>
-                <span class="n">result</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">u</span><span class="p">);</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;User&gt; GetCompanyUsers(string company)
+    {
+        var result = new List&lt;User&gt;();
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "spGetCompanyUsers";
+            var p = CreateParameter("@companyName", company);
+            cmd.Parameters.Add(p);
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var u = new User
+                {
+                    Id = (string) reader["id"],
+                    UserName = (string) reader["user"],
+                    Name = (string) reader["name"],
+                    Email = (string) reader["emailAddress"],
+                    Phone = (string) reader["cellPhone"],
+                    ZipCode = (string) reader["zip"]
+                };
+                result.Add(u);
+            }
+        }
+        return result;
+    }
 
-    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetUserEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">userId</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="s">"spGetEmailForUser"</span><span class="p">;</span>
-            <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">userId</span><span class="p">);</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
-            <span class="k">return</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">();</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
+    public string GetUserEmail(string userId)
+    {
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "spGetEmailForUser";
+            var p = CreateParameter("@userId", userId);
+            cmd.Parameters.Add(p);
+            return (string) cmd.ExecuteScalar();
+        }
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">StoreUser</span><span class="p">(</span><span class="n">User</span> <span class="n">u</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="s">"spInsertOrUpdateUser"</span><span class="p">;</span>
-            <span class="kt">var</span> <span class="n">ps</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Id</span><span class="p">),</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@user"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">UserName</span><span class="p">),</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@name"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Name</span><span class="p">),</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@emailAddress"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Email</span><span class="p">),</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@cellPhone"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Phone</span><span class="p">),</span>
-                <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@zip"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">ZipCode</span><span class="p">)</span>
-            <span class="p">};</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">ps</span><span class="p">);</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">();</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public void StoreUser(User u)
+    {
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "spInsertOrUpdateUser";
+            var ps = new [] {
+                CreateParameter("@userId", u.Id),
+                CreateParameter("@user", u.UserName),
+                CreateParameter("@name", u.Name),
+                CreateParameter("@emailAddress", u.Email),
+                CreateParameter("@cellPhone", u.Phone),
+                CreateParameter("@zip", u.ZipCode)
+            };
+            cmd.Parameters.AddRange(ps);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+        }
+    }
+}
 </code></pre>
 <p>So you can see, there’s a great deal of duplication going on there. And obviously, as you add new queries and commands, the amount of duplication increases linearly. It’s the embryo of a maintenance nightmare right there. But we’ll fight back with that trusty ol’ weapon of ours: abstraction! To arrive at a suitable one, let’s play a game of compare and contrast.</p>
 <p>What varies?</p>
@@ -128,370 +128,370 @@
 <p>There are a couple of design patterns that spring to mind, like <a href="https://en.wikipedia.org/wiki/Strategy_pattern">Strategy</a> or <a href="https://en.wikipedia.org/wiki/Template_method_pattern">Template method</a>, that might help us clean things up. We’ll be leaving <a href="https://en.wikipedia.org/wiki/Design_Patterns">GoF</a> on the shelf next to PoEAA, though, and use lambdas and generic methods instead.</p>
 <p>I take “don’t repeat yourself” quite literally. So we’re aiming for a single method where we’ll be doing all our communication with the database. We’re going to channel all our queries and commands through that same method, passing in just the stuff that varies.</p>
 <p>To work towards that goal, let’s refactor into some generic methods:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Client2</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">_connStr</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Client2
+{
+    private readonly string _connStr;
 
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">DbProviderFactory</span> <span class="n">_dpf</span><span class="p">;</span>
+    private readonly DbProviderFactory _dpf;
 
-    <span class="k">public</span> <span class="nf">Client2</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">)</span> <span class="p">:</span> <span class="k">this</span><span class="p">(</span><span class="n">connStr</span><span class="p">,</span> 
-      <span class="n">DbProviderFactories</span><span class="p">.</span><span class="n">GetFactory</span><span class="p">(</span><span class="s">"System.Data.SqlClient"</span><span class="p">))</span>
-    <span class="p">{}</span>
+    public Client2(string connStr) : this(connStr, 
+      DbProviderFactories.GetFactory("System.Data.SqlClient"))
+    {}
 
-    <span class="k">public</span> <span class="nf">Client2</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">,</span> <span class="n">DbProviderFactory</span> <span class="n">dpf</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_connStr</span> <span class="p">=</span> <span class="n">connStr</span><span class="p">;</span>
-        <span class="n">_dpf</span> <span class="p">=</span> <span class="n">dpf</span><span class="p">;</span>
-    <span class="p">}</span>
+    public Client2(string connStr, DbProviderFactory dpf)
+    {
+        _connStr = connStr;
+        _dpf = dpf;
+    }
 
-    <span class="k">private</span> <span class="n">DbParameter</span> <span class="nf">CreateParameter</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">,</span> <span class="kt">object</span> <span class="n">val</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateParameter</span><span class="p">();</span>
-        <span class="n">p</span><span class="p">.</span><span class="n">ParameterName</span> <span class="p">=</span> <span class="n">name</span><span class="p">;</span>
-        <span class="n">p</span><span class="p">.</span><span class="n">Value</span> <span class="p">=</span> <span class="n">val</span><span class="p">;</span>
-        <span class="k">return</span> <span class="n">p</span><span class="p">;</span>
-    <span class="p">}</span>
+    private DbParameter CreateParameter(string name, object val)
+    {
+        var p = _dpf.CreateParameter();
+        p.ParameterName = name;
+        p.Value = val;
+        return p;
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;</span> <span class="n">GetCompanyUsers</span><span class="p">(</span><span class="kt">string</span> <span class="n">company</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="nf">ExecuteReader</span><span class="p">(</span><span class="s">"spGetCompanyUsers"</span><span class="p">,</span>
-            <span class="k">new</span><span class="p">[]</span> <span class="p">{</span><span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@companyName"</span><span class="p">,</span> <span class="n">company</span><span class="p">)},</span>
-            <span class="n">r</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">User</span>
-            <span class="p">{</span>
-                <span class="n">Id</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"id"</span><span class="p">],</span>
-                <span class="n">UserName</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"user"</span><span class="p">],</span>
-                <span class="n">Name</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"name"</span><span class="p">],</span>
-                <span class="n">Email</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"emailAddress"</span><span class="p">],</span>
-                <span class="n">Phone</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"cellPhone"</span><span class="p">],</span>
-                <span class="n">ZipCode</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"zip"</span><span class="p">]</span>
-            <span class="p">});</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;User&gt; GetCompanyUsers(string company)
+    {
+        return ExecuteReader("spGetCompanyUsers",
+            new[] {CreateParameter("@companyName", company)},
+            r =&gt; new User
+            {
+                Id = (string) r["id"],
+                UserName = (string) r["user"],
+                Name = (string) r["name"],
+                Email = (string) r["emailAddress"],
+                Phone = (string) r["cellPhone"],
+                ZipCode = (string) r["zip"]
+            });
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ExecuteReader</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDataRecord</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span> 
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">sqlParams</span><span class="p">);</span>
-            <span class="kt">var</span> <span class="n">reader</span> <span class="p">=</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">();</span>
-            <span class="k">while</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">())</span>
-            <span class="p">{</span>
-                <span class="n">result</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">map</span><span class="p">(</span><span class="n">reader</span><span class="p">));</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;T&gt; ExecuteReader&lt;T&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;IDataRecord, T&gt; map)
+    {
+        var result = new List&lt;T&gt;(); 
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = spName;
+            cmd.Parameters.AddRange(sqlParams);
+            var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                result.Add(map(reader));
+            }
+        }
+        return result;
+    }
 
-    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetUserEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">userId</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="nf">ExecuteScalar</span><span class="p">(</span><span class="s">"spGetEmailForUser"</span><span class="p">,</span> 
-            <span class="k">new</span><span class="p">[]</span> <span class="p">{</span><span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">userId</span><span class="p">)},</span> 
-            <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span> <span class="k">as</span> <span class="kt">string</span><span class="p">);</span>
-    <span class="p">}</span>
+    public string GetUserEmail(string userId)
+    {
+        return ExecuteScalar("spGetEmailForUser", 
+            new[] {CreateParameter("@userId", userId)}, 
+            o =&gt; o as string);
+    }
 
-    <span class="k">public</span> <span class="n">T</span> <span class="n">ExecuteScalar</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">sqlParams</span><span class="p">);</span>
-            <span class="k">return</span> <span class="nf">map</span><span class="p">(</span><span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">());</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
+    public T ExecuteScalar&lt;T&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;object, T&gt; map)
+    {
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = spName;
+            cmd.Parameters.AddRange(sqlParams);
+            return map(cmd.ExecuteScalar());
+        }
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">StoreUser</span><span class="p">(</span><span class="n">User</span> <span class="n">u</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">ExecuteNonQuery</span><span class="p">(</span><span class="s">"spInsertOrUpdateUser"</span><span class="p">,</span>
-            <span class="k">new</span><span class="p">[]</span>
-                <span class="p">{</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Id</span><span class="p">),</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@user"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">UserName</span><span class="p">),</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@name"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Name</span><span class="p">),</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@emailAddress"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Email</span><span class="p">),</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@cellPhone"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Phone</span><span class="p">),</span>
-                    <span class="n">CreateParameter</span><span class="p">(</span><span class="s">"@zip"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">ZipCode</span><span class="p">)</span>
-                <span class="p">});</span>
-    <span class="p">}</span>
+    public void StoreUser(User u)
+    {
+        ExecuteNonQuery("spInsertOrUpdateUser",
+            new[]
+                {
+                    CreateParameter("@userId", u.Id),
+                    CreateParameter("@user", u.UserName),
+                    CreateParameter("@name", u.Name),
+                    CreateParameter("@emailAddress", u.Email),
+                    CreateParameter("@cellPhone", u.Phone),
+                    CreateParameter("@zip", u.ZipCode)
+                });
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">ExecuteNonQuery</span><span class="p">(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">sqlParams</span><span class="p">);</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">();</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public void ExecuteNonQuery(string spName, 
+      DbParameter[] sqlParams)
+    {
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = spName;
+            cmd.Parameters.AddRange(sqlParams);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+        }
+    }
+}
 </code></pre>
 <p>So we’ve bloated the code a little bit - in fact, we just doubled the number of methods. But we’re in a much better position to write new queries and commands. We’re done with connections and usings and what have you. Later on, we can just reuse the same generic methods.</p>
 <p>However, we still have some glaring duplication hurting our eyes: the three execute methods are practically identical. So while the code is much DRYer than the original, there’s still some moisture in there. And moisture leads to smell and rot.</p>
 <p>To wring those few remaining drops out of the code, we need to abstract over the execute methods. The solution? To go even more generic!</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="n">TResult</span> <span class="n">Execute</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-  <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDbCommand</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">execute</span><span class="p">,</span> 
-  <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-    <span class="p">{</span>
-        <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-        <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">sqlParams</span><span class="p">);</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-        <span class="k">return</span> <span class="nf">map</span><span class="p">(</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">));</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public TResult Execute&lt;T, TResult&gt;(string spName, 
+  DbParameter[] sqlParams, Func&lt;IDbCommand, T&gt; execute, 
+  Func&lt;T, TResult&gt; map)
+{
+    using (var conn = _dpf.CreateConnection())
+    using (var cmd = _dpf.CreateCommand())
+    {
+        conn.ConnectionString = _connStr;
+        conn.Open();
+        cmd.Connection = conn;
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = spName;
+        cmd.Parameters.AddRange(sqlParams);
+        cmd.CommandType = CommandType.StoredProcedure;
+        return map(execute(cmd));
+    }
+}
 </code></pre>
 <p>So basically the solution is to pass in a function that specifies the execute method to run. The other execute methods can use this to get their stuff done. Now that we have our single, magical do-all database interaction method, let’s make make things a bit more reusable. We’ll cut the database code out of the client, and introduce a tiny abstraction. Let’s call it <strong>Database</strong>, since that’s what it is. In fact, for good measure, let’s throw in a new method that might be useful in the process: <strong>ExecuteRow</strong>. Here’s the code:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Database</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">_connStr</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Database
+{
+    private readonly string _connStr;
 
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">DbProviderFactory</span> <span class="n">_dpf</span><span class="p">;</span>
+    private readonly DbProviderFactory _dpf;
 
-    <span class="k">public</span> <span class="nf">Database</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">):</span> <span class="k">this</span><span class="p">(</span><span class="n">connStr</span><span class="p">,</span> 
-      <span class="n">DbProviderFactories</span><span class="p">.</span><span class="n">GetFactory</span><span class="p">(</span><span class="s">"System.Data.SqlClient"</span><span class="p">))</span>
-    <span class="p">{}</span>
+    public Database(string connStr): this(connStr, 
+      DbProviderFactories.GetFactory("System.Data.SqlClient"))
+    {}
 
-    <span class="k">public</span> <span class="nf">Database</span><span class="p">(</span><span class="kt">string</span> <span class="n">connStr</span><span class="p">,</span> <span class="n">DbProviderFactory</span> <span class="n">dpf</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_connStr</span> <span class="p">=</span> <span class="n">connStr</span><span class="p">;</span>
-        <span class="n">_dpf</span> <span class="p">=</span> <span class="n">dpf</span><span class="p">;</span>
-    <span class="p">}</span>
+    public Database(string connStr, DbProviderFactory dpf)
+    {
+        _connStr = connStr;
+        _dpf = dpf;
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">ExecuteReader</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDataRecord</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="nf">Execute</span><span class="p">(</span><span class="n">spName</span><span class="p">,</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">cmd</span> <span class="p">=&gt;</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">(),</span>
-            <span class="n">r</span> <span class="p">=&gt;</span>
-            <span class="p">{</span>
-                <span class="kt">var</span> <span class="n">result</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;();</span>
-                <span class="k">while</span> <span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">Read</span><span class="p">())</span>
-                <span class="p">{</span>
-                    <span class="n">result</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">map</span><span class="p">(</span><span class="n">r</span><span class="p">));</span>
-                <span class="p">}</span>
-                <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-            <span class="p">});</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;T&gt; ExecuteReader&lt;T&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;IDataRecord, T&gt; map)
+    {
+        return Execute(spName, sqlParams, cmd =&gt; cmd.ExecuteReader(),
+            r =&gt;
+            {
+                var result = new List&lt;T&gt;();
+                while (r.Read())
+                {
+                    result.Add(map(r));
+                }
+                return result;
+            });
+    }
 
-    <span class="k">public</span> <span class="n">T</span> <span class="n">ExecuteRow</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDataRecord</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="nf">ExecuteReader</span><span class="p">(</span><span class="n">spName</span><span class="p">,</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">map</span><span class="p">).</span><span class="n">First</span><span class="p">();</span>
-    <span class="p">}</span>
+    public T ExecuteRow&lt;T&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;IDataRecord, T&gt; map)
+    {
+        return ExecuteReader(spName, sqlParams, map).First();
+    }
 
-    <span class="k">public</span> <span class="n">T</span> <span class="n">ExecuteScalar</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="nf">Execute</span><span class="p">(</span><span class="n">spName</span><span class="p">,</span> <span class="n">sqlParams</span><span class="p">,</span> 
-            <span class="n">cmd</span> <span class="p">=&gt;</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">(),</span> <span class="n">map</span><span class="p">);</span>
-    <span class="p">}</span>
+    public T ExecuteScalar&lt;T&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;object, T&gt; map)
+    {
+        return Execute(spName, sqlParams, 
+            cmd =&gt; cmd.ExecuteScalar(), map);
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">ExecuteNonQuery</span><span class="p">(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">Execute</span><span class="p">(</span><span class="n">spName</span><span class="p">,</span> <span class="n">sqlParams</span><span class="p">,</span> 
-            <span class="n">cmd</span> <span class="p">=&gt;</span> <span class="n">cmd</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">(),</span> 
-            <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span><span class="p">);</span>
-    <span class="p">}</span>
+    public void ExecuteNonQuery(string spName, 
+      DbParameter[] sqlParams)
+    {
+        Execute(spName, sqlParams, 
+            cmd =&gt; cmd.ExecuteNonQuery(), 
+            o =&gt; o);
+    }
 
-    <span class="k">public</span> <span class="n">TResult</span> <span class="n">Execute</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-      <span class="n">DbParameter</span><span class="p">[]</span> <span class="n">sqlParams</span><span class="p">,</span> <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDbCommand</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">execute</span><span class="p">,</span> 
-      <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-        <span class="p">{</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-            <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">AddRange</span><span class="p">(</span><span class="n">sqlParams</span><span class="p">);</span>
-            <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-            <span class="k">return</span> <span class="nf">map</span><span class="p">(</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">));</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public TResult Execute&lt;T, TResult&gt;(string spName, 
+      DbParameter[] sqlParams, Func&lt;IDbCommand, T&gt; execute, 
+      Func&lt;T, TResult&gt; map)
+    {
+        using (var conn = _dpf.CreateConnection())
+        using (var cmd = _dpf.CreateCommand())
+        {
+            conn.ConnectionString = _connStr;
+            conn.Open();
+            cmd.Connection = conn;
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = spName;
+            cmd.Parameters.AddRange(sqlParams);
+            cmd.CommandType = CommandType.StoredProcedure;
+            return map(execute(cmd));
+        }
+    }
+}
 </code></pre>
 <p><strong>ExecuteScalar</strong> is pretty straightforward, but there are a few interesting details concerning the others. First, <strong>ExecuteReader</strong> derives a map from <strong>IDataReader</strong> to <strong>IEnumerable</strong> from the user-supplied map from <strong>IDataRecord</strong> to <strong>T</strong>. Second, <strong>ExecuteNonQuery</strong> doesn’t really care about the result from calling <strong>DbCommand.ExecuteNonQuery</strong> against the database (which indicates the number of rows affected by the command/non-query). So we’re providing the simplest possible map - the identity map - to the <strong>Execute</strong> method.</p>
 <p>So the execution code is pretty DRY now. Basically, you’re just passing in the stuff that varies. And there’s a single method actually creating connections and commands and executing them against the database. Good stuff.</p>
 <p>Let’s attack redundancy in the client code. Here’s what it looks like at the moment:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Client4</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">Database</span> <span class="n">_db</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Client4
+{
+    private readonly Database _db;
 
-    <span class="k">public</span> <span class="nf">Client4</span><span class="p">(</span><span class="n">Database</span> <span class="n">db</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_db</span> <span class="p">=</span> <span class="n">db</span><span class="p">;</span>
-    <span class="p">}</span>
+    public Client4(Database db)
+    {
+        _db = db;
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;</span> <span class="n">GetCompanyUsers</span><span class="p">(</span><span class="kt">string</span> <span class="n">company</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">(</span><span class="s">"spGetCompanyUsers"</span><span class="p">,</span>
-            <span class="k">new</span><span class="p">[]</span> <span class="p">{</span> <span class="k">new</span> <span class="n">SqlParameter</span><span class="p">(</span><span class="s">"@companyName"</span><span class="p">,</span> <span class="n">company</span><span class="p">)</span> <span class="p">},</span>
-            <span class="n">r</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">User</span>
-                     <span class="p">{</span>
-                         <span class="n">Id</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"id"</span><span class="p">],</span>
-                         <span class="n">UserName</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"user"</span><span class="p">],</span>
-                         <span class="n">Name</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"name"</span><span class="p">],</span>
-                         <span class="n">Email</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"emailAddress"</span><span class="p">],</span>
-                         <span class="n">Phone</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"cellPhone"</span><span class="p">],</span>
-                         <span class="n">ZipCode</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span><span class="n">r</span><span class="p">[</span><span class="s">"zip"</span><span class="p">]</span>
-                     <span class="p">});</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;User&gt; GetCompanyUsers(string company)
+    {
+        return _db.ExecuteReader("spGetCompanyUsers",
+            new[] { new SqlParameter("@companyName", company) },
+            r =&gt; new User
+                     {
+                         Id = (string)r["id"],
+                         UserName = (string)r["user"],
+                         Name = (string)r["name"],
+                         Email = (string)r["emailAddress"],
+                         Phone = (string)r["cellPhone"],
+                         ZipCode = (string)r["zip"]
+                     });
+    }
 
-    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetUserEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">userId</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">(</span><span class="s">"spGetEmailForUser"</span><span class="p">,</span>
-            <span class="k">new</span><span class="p">[]</span> <span class="p">{</span> <span class="k">new</span> <span class="n">SqlParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">userId</span><span class="p">)</span> <span class="p">},</span>
-            <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span> <span class="k">as</span> <span class="kt">string</span><span class="p">);</span>
-    <span class="p">}</span>
+    public string GetUserEmail(string userId)
+    {
+        return _db.ExecuteScalar("spGetEmailForUser",
+            new[] { new SqlParameter("@userId", userId) },
+            o =&gt; o as string);
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">StoreUser</span><span class="p">(</span><span class="n">User</span> <span class="n">u</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">(</span><span class="s">"spInsertOrUpdateUser"</span><span class="p">,</span>
-            <span class="k">new</span><span class="p">[]</span>
-                <span class="p">{</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Id</span><span class="p">),</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@user"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">UserName</span><span class="p">),</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@name"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Name</span><span class="p">),</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@emailAddress"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Email</span><span class="p">),</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@cellPhone"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Phone</span><span class="p">),</span>
-                    <span class="k">new</span> <span class="nf">SqlParameter</span><span class="p">(</span><span class="s">"@zip"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">ZipCode</span><span class="p">)</span>
-                <span class="p">});</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public void StoreUser(User u)
+    {
+        _db.ExecuteNonQuery("spInsertOrUpdateUser",
+            new[]
+                {
+                    new SqlParameter("@userId", u.Id),
+                    new SqlParameter("@user", u.UserName),
+                    new SqlParameter("@name", u.Name),
+                    new SqlParameter("@emailAddress", u.Email),
+                    new SqlParameter("@cellPhone", u.Phone),
+                    new SqlParameter("@zip", u.ZipCode)
+                });
+    }
+}
 </code></pre>
 <p>Actually, it’s not too bad, but I’m not happy about the repeated chanting of <strong>new SqlParameter</strong>. We’ll introduce a simple abstraction to DRY up that too, and give us a syntax that’s a bit more succinct and declarative-looking.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">StoredProcedure</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">DbProviderFactory</span> <span class="n">_dpf</span><span class="p">;</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">DbCommand</span> <span class="n">_sp</span><span class="p">;</span>
+<pre><code class="language-csharp">public class StoredProcedure
+{
+    private readonly DbProviderFactory _dpf;
+    private readonly DbCommand _sp;
 
-    <span class="k">public</span> <span class="nf">StoredProcedure</span><span class="p">(</span><span class="n">DbCommand</span> <span class="n">sp</span><span class="p">,</span> <span class="n">DbProviderFactory</span> <span class="n">dpf</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_sp</span> <span class="p">=</span> <span class="n">sp</span><span class="p">;</span>
-        <span class="n">_dpf</span> <span class="p">=</span> <span class="n">dpf</span><span class="p">;</span>
-    <span class="p">}</span>
+    public StoredProcedure(DbCommand sp, DbProviderFactory dpf)
+    {
+        _sp = sp;
+        _dpf = dpf;
+    }
 
-    <span class="k">public</span> <span class="n">StoredProcedure</span> <span class="k">this</span><span class="p">[</span><span class="kt">string</span> <span class="n">parameterName</span><span class="p">,</span> 
-      <span class="kt">object</span> <span class="k">value</span><span class="p">,</span> <span class="kt">int?</span> <span class="n">size</span> <span class="p">=</span> <span class="k">null</span><span class="p">,</span> <span class="n">DbType</span><span class="p">?</span> <span class="n">type</span> <span class="p">=</span> <span class="k">null</span><span class="p">]</span>
-    <span class="p">{</span>
-        <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">AddParameter</span><span class="p">(</span><span class="n">parameterName</span><span class="p">,</span> <span class="k">value</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span> <span class="p">}</span>
-    <span class="p">}</span>
+    public StoredProcedure this[string parameterName, 
+      object value, int? size = null, DbType? type = null]
+    {
+        get { return AddParameter(parameterName, value, size, type); }
+    }
 
-    <span class="k">public</span> <span class="n">StoredProcedure</span> <span class="nf">AddParameter</span><span class="p">(</span><span class="kt">string</span> <span class="n">parameterName</span><span class="p">,</span> 
-      <span class="kt">object</span> <span class="k">value</span><span class="p">,</span> <span class="kt">int?</span> <span class="n">size</span> <span class="p">=</span> <span class="k">null</span><span class="p">,</span> <span class="n">DbType</span><span class="p">?</span> <span class="n">type</span> <span class="p">=</span> <span class="k">null</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">p</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateParameter</span><span class="p">();</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-        <span class="p">{</span>
-            <span class="n">p</span><span class="p">.</span><span class="n">ParameterName</span> <span class="p">=</span> <span class="n">parameterName</span><span class="p">;</span>
-            <span class="n">p</span><span class="p">.</span><span class="n">Value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">size</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
-            <span class="p">{</span>
-                <span class="n">p</span><span class="p">.</span><span class="n">Size</span> <span class="p">=</span> <span class="n">size</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
-            <span class="p">}</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">type</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
-            <span class="p">{</span>
-                <span class="n">p</span><span class="p">.</span><span class="n">DbType</span> <span class="p">=</span> <span class="n">type</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
-            <span class="p">}</span>
-            <span class="n">_sp</span><span class="p">.</span><span class="n">Parameters</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public StoredProcedure AddParameter(string parameterName, 
+      object value, int? size = null, DbType? type = null)
+    {
+        var p = _dpf.CreateParameter();
+        if (p != null)
+        {
+            p.ParameterName = parameterName;
+            p.Value = value;
+            if (size.HasValue)
+            {
+                p.Size = size.Value;
+            }
+            if (type.HasValue)
+            {
+                p.DbType = type.Value;
+            }
+            _sp.Parameters.Add(p);
+        }
+        return this;
+    }
+}
 </code></pre>
 <p>This is basically a sponge for parameters. It uses a little trick with a get-indexer with side-effects to do its thing. This allows for a simple fluent syntax to add parameters to a <strong>DbCommand</strong> object. Let’s refactor the generic <strong>Execute</strong> method to use it.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="n">TResult</span> <span class="n">Execute</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">spName</span><span class="p">,</span> 
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">StoredProcedure</span><span class="p">,</span> <span class="n">StoredProcedure</span><span class="p">&gt;</span> <span class="n">configure</span><span class="p">,</span> 
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">IDbCommand</span><span class="p">,</span> <span class="n">T</span><span class="p">&gt;</span> <span class="n">execute</span><span class="p">,</span> 
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TResult</span><span class="p">&gt;</span> <span class="n">map</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">conn</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateConnection</span><span class="p">())</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">cmd</span> <span class="p">=</span> <span class="n">_dpf</span><span class="p">.</span><span class="n">CreateCommand</span><span class="p">())</span>
-    <span class="p">{</span>
-        <span class="n">conn</span><span class="p">.</span><span class="n">ConnectionString</span> <span class="p">=</span> <span class="n">_connStr</span><span class="p">;</span>
-        <span class="n">conn</span><span class="p">.</span><span class="n">Open</span><span class="p">();</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">Connection</span> <span class="p">=</span> <span class="n">conn</span><span class="p">;</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandText</span> <span class="p">=</span> <span class="n">spName</span><span class="p">;</span>
-        <span class="n">configure</span><span class="p">(</span><span class="k">new</span> <span class="n">StoredProcedure</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">_dpf</span><span class="p">));</span>
-        <span class="n">cmd</span><span class="p">.</span><span class="n">CommandType</span> <span class="p">=</span> <span class="n">CommandType</span><span class="p">.</span><span class="n">StoredProcedure</span><span class="p">;</span>
-        <span class="k">return</span> <span class="nf">map</span><span class="p">(</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">));</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public TResult Execute&lt;T, TResult&gt;(string spName, 
+    Func&lt;StoredProcedure, StoredProcedure&gt; configure, 
+    Func&lt;IDbCommand, T&gt; execute, 
+    Func&lt;T, TResult&gt; map)
+{
+    using (var conn = _dpf.CreateConnection())
+    using (var cmd = _dpf.CreateCommand())
+    {
+        conn.ConnectionString = _connStr;
+        conn.Open();
+        cmd.Connection = conn;
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.CommandText = spName;
+        configure(new StoredProcedure(cmd, _dpf));
+        cmd.CommandType = CommandType.StoredProcedure;
+        return map(execute(cmd));
+    }
+}
 </code></pre>
 <p>The refactoring ripples through to the other execute methods as well, meaning you pass in a <strong>Func</strong> instead of the parameter array. Now the interesting part is how the new abstraction affects the client code. Here’s how:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Client5</span>
-<span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">Database</span> <span class="n">_db</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Client5
+{
+    private readonly Database _db;
 
-    <span class="k">public</span> <span class="nf">Client5</span><span class="p">(</span><span class="n">Database</span> <span class="n">db</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_db</span> <span class="p">=</span> <span class="n">db</span><span class="p">;</span>
-    <span class="p">}</span>
+    public Client5(Database db)
+    {
+        _db = db;
+    }
 
-    <span class="k">public</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">User</span><span class="p">&gt;</span> <span class="n">GetCompanyUsers</span><span class="p">(</span><span class="kt">string</span> <span class="n">company</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteReader</span><span class="p">(</span>
-            <span class="s">"spGetCompanyUsers"</span><span class="p">,</span>
-            <span class="n">sp</span> <span class="p">=&gt;</span> <span class="n">sp</span><span class="p">[</span><span class="s">"@companyName"</span><span class="p">,</span> <span class="n">company</span><span class="p">],</span>
-            <span class="n">r</span> <span class="p">=&gt;</span> <span class="k">new</span> <span class="n">User</span>
-                     <span class="p">{</span>
-                         <span class="n">Id</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"id"</span><span class="p">],</span>
-                         <span class="n">UserName</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"user"</span><span class="p">],</span>
-                         <span class="n">Name</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"name"</span><span class="p">],</span>
-                         <span class="n">Email</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"emailAddress"</span><span class="p">],</span>
-                         <span class="n">Phone</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"cellPhone"</span><span class="p">],</span>
-                         <span class="n">ZipCode</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">r</span><span class="p">[</span><span class="s">"zip"</span><span class="p">]</span>
-                     <span class="p">});</span>
-    <span class="p">}</span>
+    public IEnumerable&lt;User&gt; GetCompanyUsers(string company)
+    {
+        return _db.ExecuteReader(
+            "spGetCompanyUsers",
+            sp =&gt; sp["@companyName", company],
+            r =&gt; new User
+                     {
+                         Id = (string) r["id"],
+                         UserName = (string) r["user"],
+                         Name = (string) r["name"],
+                         Email = (string) r["emailAddress"],
+                         Phone = (string) r["cellPhone"],
+                         ZipCode = (string) r["zip"]
+                     });
+    }
 
-    <span class="k">public</span> <span class="kt">string</span> <span class="nf">GetUserEmail</span><span class="p">(</span><span class="kt">string</span> <span class="n">userId</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="k">return</span> <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteScalar</span><span class="p">(</span>
-            <span class="s">"spGetEmailForUser"</span><span class="p">,</span>
-            <span class="n">sp</span> <span class="p">=&gt;</span> <span class="n">sp</span><span class="p">[</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">userId</span><span class="p">],</span>
-            <span class="n">o</span> <span class="p">=&gt;</span> <span class="n">o</span> <span class="k">as</span> <span class="kt">string</span><span class="p">);</span>
-    <span class="p">}</span>
+    public string GetUserEmail(string userId)
+    {
+        return _db.ExecuteScalar(
+            "spGetEmailForUser",
+            sp =&gt; sp["@userId", userId],
+            o =&gt; o as string);
+    }
 
-    <span class="k">public</span> <span class="k">void</span> <span class="nf">StoreUser</span><span class="p">(</span><span class="n">User</span> <span class="n">u</span><span class="p">)</span>
-    <span class="p">{</span>
-        <span class="n">_db</span><span class="p">.</span><span class="n">ExecuteNonQuery</span><span class="p">(</span>
-            <span class="s">"spInsertOrUpdateUser"</span><span class="p">,</span>
-            <span class="n">sp</span> <span class="p">=&gt;</span> <span class="n">sp</span><span class="p">[</span><span class="s">"@userId"</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="n">Id</span><span class="p">]</span>
-<span class="na">                    ["@user", u.UserName]</span>
-<span class="na">                    ["@name", u.Name]</span>
-<span class="na">                    ["@emailAddress", u.Email]</span>
-<span class="na">                    ["@cellPhone", u.Phone]</span>
-<span class="na">                    ["@zip", u.ZipCode]</span><span class="p">);</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+    public void StoreUser(User u)
+    {
+        _db.ExecuteNonQuery(
+            "spInsertOrUpdateUser",
+            sp =&gt; sp["@userId", u.Id]
+                    ["@user", u.UserName]
+                    ["@name", u.Name]
+                    ["@emailAddress", u.Email]
+                    ["@cellPhone", u.Phone]
+                    ["@zip", u.ZipCode]);
+    }
+}
 </code></pre>
 <p>Which is pretty much as DRY as it gets, at least in my book. We just grab the data and go. Wheee! Where’s my tea?</p>
 </body></html>

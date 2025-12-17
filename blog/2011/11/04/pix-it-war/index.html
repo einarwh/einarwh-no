@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Pix-it war! | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Pix-it war!"><meta property="og:url" content="https://einarwh.no/blog/2011/11/04/pix-it-war/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Pix-it war!</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Pix-it war! | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Pix-it war!"><meta property="og:url" content="https://einarwh.no/blog/2011/11/04/pix-it-war/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Pix-it war!</h1>
 <p class="blog-post-date">November 4, 2011</p>
 <p>So-called custom HTTP handlers can be incredibly useful. It’s almost laughably easy to write your own handler, and it enables some scenarios that might be difficult, cumbersome or inelegant to support otherwise. It’s definitely something you’ll want in your repertoire if you’re an ASP.NET programmer.</p>
 <p>In essence, what a custom HTTP handler gives you is the ability to respond to an HTTP request by creating arbitrary content on the fly and have it pushed out to the client making the request. This content could be any type of file you like. In theory it could be HTML for the browser to render, but it typically won’t be (you have regular ASP.NET pages for that, remember?). Rather, you’ll have some way of magically conjuring up some binary artefact, such as an image or a PDF document. You could take various kinds of input to your spell, such as data submitted with the request, data from a database, the phase of the moon or what have you.</p>
@@ -10,294 +10,294 @@
 <p>So, say we wanted to draw something simple, like the canonical space invader. We’ll draw a grid by hand, and fill in pixels as appropriate. A thirteen by ten pixel grid will do nicely.</p>
 <p><img src="/images/857c0c691934/invader-sketch.png" alt="Space invader sketch"></p>
 <p>We can glean the appropriate pixels to color black from the grid, which makes it rather easy to translate into a suitable JSON file. The result might be something like:</p>
-<pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span> 
-  <span class="nt">"pixelsWide"</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
-  <span class="nt">"pixelsHigh"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-  <span class="nt">"pixelSize"</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-  <span class="nt">"payload"</span><span class="p">:</span> 
-  <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#000000"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> 
-        <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
-        <span class="p">]</span>
-      <span class="p">}</span> 
-    <span class="p">]</span>
-<span class="p">}</span>
+<pre><code class="language-json">{ 
+  "pixelsWide": 13,
+  "pixelsHigh": 10,
+  "pixelSize": 20,
+  "payload": 
+  [
+    {
+      "color" : "#000000",
+      "pixels" :
+      [
+        [1, 5], [1, 6], [1, 7], [2, 4],
+        [2, 5], [3, 1], [3, 3], [3, 4],
+        [3, 5], [3, 6], [3, 7], [4, 2],
+        [4, 3], [4, 5], [4, 6], [4, 8],
+        [5, 3], [5, 4], [5, 5], [5, 6],
+        [5, 8], [6, 3], [6, 4], [6, 5],
+        [6, 6], [7, 3], [7, 4], [7, 5],
+        [7, 6], [7, 8], [8, 2], [8, 3],
+        [8, 5], [8, 6], [8, 8], [9, 1],
+        [9, 3], [9, 4], [9, 5], [9, 6],
+        [9, 7], [10, 4], [10, 5], 
+        [11, 5], [11, 6], [11, 7]
+        ]
+      } 
+    ]
+}
 </code></pre>
 <p>Is this the optimal textual format for describing a retro-style coarse-pixeled image? Of course not, I made it up in ten seconds (about the same time Brendan Eich spent designing and implementing JavaScript, according to Internet legend). Is it good enough for this blog post? Aaaabsolutely. But the proof of the pudding is in the eating. So let’s eat!</p>
 <p>We’ve established that the user will be posting data like this to our custom HTTP handler; our task is to translate it into an image and feed it into the response stream. Most of this work can be done without considering the context of an HTTP handler at all. The HTTP handler is just there to expose the functionality over the web, really. It’s almost like a web service.</p>
 <p>Unfortunately, getting the JSON from the POST request is more cumbersome than it should be. I had to reach for the request’s input stream in order to get to the data. Once you get the JSON, however, the rest is smooth sailing.</p>
 <p>I use <a href="https://www.newtonsoft.com/json">Json.NET</a>‘s useful Linq-to-JSON capability to coerce the JSON into a .NET object, which I feed to the image-producing method. The Linq-to-JSON code is pretty simple, once you get used to the API:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">private</span> <span class="k">static</span> <span class="n">PixItData</span> <span class="nf">ToPixItData</span><span class="p">(</span><span class="kt">string</span> <span class="n">json</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="n">JObject</span> <span class="n">o</span> <span class="p">=</span> <span class="n">JObject</span><span class="p">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">json</span><span class="p">);</span>
-  <span class="kt">int</span> <span class="n">size</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelSize"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-  <span class="kt">int</span> <span class="n">wide</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelsWide"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-  <span class="kt">int</span> <span class="n">high</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelsHigh"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-  <span class="n">JToken</span> <span class="n">bg</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"background"</span><span class="p">);</span>
-  <span class="n">Color</span><span class="p">?</span> <span class="n">bgColor</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">bg</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="kt">string</span> <span class="n">bgStr</span> <span class="p">=</span> <span class="n">bg</span><span class="p">.</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
-    <span class="n">bgColor</span> <span class="p">=</span> <span class="n">ColorTranslator</span><span class="p">.</span><span class="n">FromHtml</span><span class="p">(</span><span class="n">bgStr</span><span class="p">);</span>
-  <span class="p">}</span>
-  <span class="n">JToken</span> <span class="n">payload</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"payload"</span><span class="p">);</span>
-  <span class="kt">var</span> <span class="n">dict</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">Color</span><span class="p">,</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;&gt;();</span>
-  <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">t</span> <span class="k">in</span> <span class="n">payload</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="kt">var</span> <span class="n">list</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;();</span>
-    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">xyArray</span> <span class="k">in</span> <span class="n">t</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixels"</span><span class="p">))</span>
-    <span class="p">{</span>
-      <span class="kt">int</span> <span class="n">x</span> <span class="p">=</span> <span class="n">xyArray</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-      <span class="kt">int</span> <span class="n">y</span> <span class="p">=</span> <span class="n">xyArray</span><span class="p">[</span><span class="m">1</span><span class="p">].</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-      <span class="n">list</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">Pixel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">));</span>
-    <span class="p">}</span>
-    <span class="kt">string</span> <span class="n">cs</span> <span class="p">=</span> <span class="n">t</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"color"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
-    <span class="n">Color</span> <span class="n">clr</span> <span class="p">=</span> <span class="n">ColorTranslator</span><span class="p">.</span><span class="n">FromHtml</span><span class="p">(</span><span class="n">cs</span><span class="p">);</span>
-    <span class="n">dict</span><span class="p">[</span><span class="n">clr</span><span class="p">]</span> <span class="p">=</span> <span class="n">list</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="nf">PixItData</span><span class="p">(</span><span class="n">wide</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dict</span><span class="p">);</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">private static PixItData ToPixItData(string json)
+{
+  JObject o = JObject.Parse(json);
+  int size = o.SelectToken("pixelSize").Value&lt;int&gt;();
+  int wide = o.SelectToken("pixelsWide").Value&lt;int&gt;();
+  int high = o.SelectToken("pixelsHigh").Value&lt;int&gt;();
+  JToken bg = o.SelectToken("background");
+  Color? bgColor = null;
+  if (bg != null)
+  {
+    string bgStr = bg.Value&lt;string&gt;();
+    bgColor = ColorTranslator.FromHtml(bgStr);
+  }
+  JToken payload = o.SelectToken("payload");
+  var dict = new Dictionary&lt;Color, IEnumerable&lt;Pixel&gt;&gt;();
+  foreach (var t in payload)
+  {
+    var list = new List&lt;Pixel&gt;();
+    foreach (var xyArray in t.SelectToken("pixels"))
+    {
+      int x = xyArray[0].Value&lt;int&gt;();
+      int y = xyArray[1].Value&lt;int&gt;();
+      list.Add(new Pixel(x, y));
+    }
+    string cs = t.SelectToken("color").Value&lt;string&gt;();
+    Color clr = ColorTranslator.FromHtml(cs);
+    dict[clr] = list;
+  }
+  return new PixItData(wide, high, size, dict);
+}
 </code></pre>
 <p>You might be able to do this even simpler by using Json.NET’s deserialization support, but this works for me. There’s a little bit of fiddling in order to allow for the optional specification of a background color for the image.</p>
 <p>The .NET type looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">PixItData</span>
-<span class="p">{</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="n">Color</span><span class="p">?</span> <span class="n">_bgColor</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">_pixelsWide</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">_pixelsHigh</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">_pixelSize</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">Color</span><span class="p">,</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;&gt;</span> <span class="n">_data</span><span class="p">;</span>
+<pre><code class="language-csharp">public class PixItData
+{
+  private readonly Color? _bgColor;
+  private readonly int _pixelsWide;
+  private readonly int _pixelsHigh;
+  private readonly int _pixelSize;
+  private readonly Dictionary&lt;Color, IEnumerable&lt;Pixel&gt;&gt; _data;
 
-  <span class="k">public</span> <span class="nf">PixItData</span><span class="p">(</span><span class="n">Color</span><span class="p">?</span> <span class="n">bgColor</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pixelsWide</span><span class="p">,</span> 
-    <span class="kt">int</span> <span class="n">pixelsHigh</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pixelSize</span><span class="p">,</span> 
-    <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">Color</span><span class="p">,</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;&gt;</span> <span class="n">data</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">_bgColor</span> <span class="p">=</span> <span class="n">bgColor</span><span class="p">;</span>
-    <span class="n">_pixelsWide</span> <span class="p">=</span> <span class="n">pixelsWide</span><span class="p">;</span>
-    <span class="n">_pixelsHigh</span> <span class="p">=</span> <span class="n">pixelsHigh</span><span class="p">;</span>
-    <span class="n">_pixelSize</span> <span class="p">=</span> <span class="n">pixelSize</span><span class="p">;</span>
-    <span class="n">_data</span> <span class="p">=</span> <span class="n">data</span><span class="p">;</span>
-  <span class="p">}</span>
+  public PixItData(Color? bgColor, int pixelsWide, 
+    int pixelsHigh, int pixelSize, 
+    Dictionary&lt;Color, IEnumerable&lt;Pixel&gt;&gt; data)
+  {
+    _bgColor = bgColor;
+    _pixelsWide = pixelsWide;
+    _pixelsHigh = pixelsHigh;
+    _pixelSize = pixelSize;
+    _data = data;
+  }
 
-  <span class="k">public</span> <span class="n">Color</span><span class="p">?</span> <span class="n">Background</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_bgColor</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+  public Color? Background
+  {
+    get { return _bgColor; }
+  }
 
-  <span class="k">public</span> <span class="kt">int</span> <span class="n">PixelsWide</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_pixelsWide</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+  public int PixelsWide
+  {
+    get { return _pixelsWide; }
+  }
 
-  <span class="k">public</span> <span class="kt">int</span> <span class="n">PixelsHigh</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_pixelsHigh</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+  public int PixelsHigh
+  {
+    get { return _pixelsHigh; }
+  }
         
-  <span class="k">public</span> <span class="kt">int</span> <span class="n">PixelSize</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_pixelSize</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+  public int PixelSize
+  {
+    get { return _pixelSize; }
+  }
 
-  <span class="k">public</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">Color</span><span class="p">,</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;&gt;</span> <span class="n">Data</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_data</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  public Dictionary&lt;Color, IEnumerable&lt;Pixel&gt;&gt; Data
+  {
+    get { return _data; }
+  }
+}
 </code></pre>
 <p>The <strong>Pixel</strong> type simply represents an (X, Y) coordinate in the grid:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Pixel</span>
-<span class="p">{</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">_x</span><span class="p">;</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="kt">int</span> <span class="n">_y</span><span class="p">;</span>
+<pre><code class="language-csharp">public class Pixel
+{
+  private readonly int _x;
+  private readonly int _y;
 
-  <span class="k">public</span> <span class="nf">Pixel</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="kt">int</span> <span class="n">y</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">_x</span> <span class="p">=</span> <span class="n">x</span><span class="p">;</span>
-    <span class="n">_y</span> <span class="p">=</span> <span class="n">y</span><span class="p">;</span>
-  <span class="p">}</span>
+  public Pixel(int x, int y)
+  {
+    _x = x;
+    _y = y;
+  }
 
-  <span class="k">public</span> <span class="kt">int</span> <span class="n">X</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_x</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+  public int X
+  {
+    get { return _x; }
+  }
 
-  <span class="k">public</span> <span class="kt">int</span> <span class="n">Y</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_y</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  public int Y
+  {
+    get { return _y; }
+  }
+}
 </code></pre>
 <p>Creating the image is really, really simple. We start with a blank slate that’s either transparent or has the specified background color, and then we add colored squares to it as appropriate. Here’s how I do it:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">private</span> <span class="k">static</span> <span class="n">Image</span> <span class="nf">CreateImage</span><span class="p">(</span><span class="n">PixItData</span> <span class="n">data</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">width</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsWide</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">height</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsHigh</span><span class="p">;</span>
-  <span class="kt">var</span> <span class="n">image</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Bitmap</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
-  <span class="k">using</span> <span class="p">(</span><span class="n">Graphics</span> <span class="n">g</span> <span class="p">=</span> <span class="n">Graphics</span><span class="p">.</span><span class="n">FromImage</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
-  <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">Background</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="n">Color</span> <span class="n">bgColor</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">Background</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
-      <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">brush</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SolidBrush</span><span class="p">(</span><span class="n">bgColor</span><span class="p">))</span>
-      <span class="p">{</span>
-        <span class="n">g</span><span class="p">.</span><span class="n">FillRectangle</span><span class="p">(</span><span class="n">brush</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span>
-          <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsWide</span><span class="p">,</span>
-          <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsHigh</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="k">foreach</span> <span class="p">(</span><span class="n">Color</span> <span class="n">color</span> <span class="k">in</span> <span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">.</span><span class="n">Keys</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">brush</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SolidBrush</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
-      <span class="p">{</span>
-        <span class="k">foreach</span> <span class="p">(</span><span class="n">Pixel</span> <span class="n">p</span> <span class="k">in</span> <span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">[</span><span class="n">color</span><span class="p">])</span>
-        <span class="p">{</span>
-          <span class="n">g</span><span class="p">.</span><span class="n">FillRectangle</span><span class="p">(</span><span class="n">brush</span><span class="p">,</span>
-            <span class="n">p</span><span class="p">.</span><span class="n">X</span><span class="p">*</span><span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-            <span class="n">p</span><span class="p">.</span><span class="n">Y</span><span class="p">*</span><span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-            <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-            <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">);</span>
-        <span class="p">}</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">image</span><span class="p">;</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">private static Image CreateImage(PixItData data)
+{
+  int width = data.PixelSize * data.PixelsWide;
+  int height = data.PixelSize * data.PixelsHigh;
+  var image = new Bitmap(width, height);
+  using (Graphics g = Graphics.FromImage(image))
+  {
+    if (data.Background.HasValue)
+    {
+      Color bgColor = data.Background.Value;
+      using (var brush = new SolidBrush(bgColor))
+      {
+        g.FillRectangle(brush, 0, 0,
+          data.PixelSize * data.PixelsWide,
+          data.PixelSize * data.PixelsHigh);
+      }
+    }
+    foreach (Color color in data.Data.Keys)
+    {
+      using (var brush = new SolidBrush(color))
+      {
+        foreach (Pixel p in data.Data[color])
+        {
+          g.FillRectangle(brush,
+            p.X*data.PixelSize,
+            p.Y*data.PixelSize,
+            data.PixelSize,
+            data.PixelSize);
+        }
+      }
+    }
+  }
+  return image;
+}
 </code></pre>
 <p>That’s just about all there is to it. The entire HTTP handler looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">PixItHandler</span> <span class="p">:</span> <span class="n">IHttpHandler</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="kt">bool</span> <span class="n">IsReusable</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">true</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
+<pre><code class="language-csharp">public class PixItHandler : IHttpHandler
+{
+  public bool IsReusable
+  {
+    get { return true; }
+  }
 
-  <span class="k">public</span> <span class="k">void</span> <span class="nf">ProcessRequest</span><span class="p">(</span><span class="n">HttpContext</span> <span class="n">context</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="kt">string</span> <span class="n">json</span> <span class="p">=</span> <span class="n">ReadJson</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Request</span><span class="p">.</span><span class="n">InputStream</span><span class="p">);</span>
-    <span class="kt">var</span> <span class="n">data</span> <span class="p">=</span> <span class="n">ToPixItData</span><span class="p">(</span><span class="n">json</span><span class="p">);</span>
-    <span class="n">WriteResponse</span><span class="p">(</span><span class="n">context</span><span class="p">.</span><span class="n">Response</span><span class="p">,</span> <span class="n">ToBuffer</span><span class="p">(</span><span class="n">CreateImage</span><span class="p">(</span><span class="n">data</span><span class="p">)));</span>
-  <span class="p">}</span>
+  public void ProcessRequest(HttpContext context)
+  {
+    string json = ReadJson(context.Request.InputStream);
+    var data = ToPixItData(json);
+    WriteResponse(context.Response, ToBuffer(CreateImage(data)));
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="n">PixItData</span> <span class="nf">ToPixItData</span><span class="p">(</span><span class="kt">string</span> <span class="n">json</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">JObject</span> <span class="n">o</span> <span class="p">=</span> <span class="n">JObject</span><span class="p">.</span><span class="n">Parse</span><span class="p">(</span><span class="n">json</span><span class="p">);</span>
-    <span class="kt">int</span> <span class="n">size</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelSize"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-    <span class="kt">int</span> <span class="n">wide</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelsWide"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-    <span class="kt">int</span> <span class="n">high</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixelsHigh"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-    <span class="n">JToken</span> <span class="n">bg</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"background"</span><span class="p">);</span>
-    <span class="n">Color</span><span class="p">?</span> <span class="n">bgColor</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">bg</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="kt">string</span> <span class="n">bgStr</span> <span class="p">=</span> <span class="n">bg</span><span class="p">.</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
-      <span class="n">bgColor</span> <span class="p">=</span> <span class="n">ColorTranslator</span><span class="p">.</span><span class="n">FromHtml</span><span class="p">(</span><span class="n">bgStr</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="n">JToken</span> <span class="n">payload</span> <span class="p">=</span> <span class="n">o</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"payload"</span><span class="p">);</span>
-    <span class="kt">var</span> <span class="n">dict</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="n">Color</span><span class="p">,</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;&gt;();</span>
-    <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">token</span> <span class="k">in</span> <span class="n">payload</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="kt">var</span> <span class="n">list</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Pixel</span><span class="p">&gt;();</span>
-      <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">xyArray</span> <span class="k">in</span> <span class="n">token</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"pixels"</span><span class="p">))</span>
-      <span class="p">{</span>
-        <span class="kt">int</span> <span class="n">x</span> <span class="p">=</span> <span class="n">xyArray</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-        <span class="kt">int</span> <span class="n">y</span> <span class="p">=</span> <span class="n">xyArray</span><span class="p">[</span><span class="m">1</span><span class="p">].</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;();</span>
-        <span class="n">list</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="k">new</span> <span class="n">Pixel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">));</span>
-      <span class="p">}</span>
-      <span class="kt">string</span> <span class="n">cs</span> <span class="p">=</span> <span class="n">token</span><span class="p">.</span><span class="n">SelectToken</span><span class="p">(</span><span class="s">"color"</span><span class="p">).</span><span class="n">Value</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;();</span>
-      <span class="n">Color</span> <span class="n">clr</span> <span class="p">=</span> <span class="n">ColorTranslator</span><span class="p">.</span><span class="n">FromHtml</span><span class="p">(</span><span class="n">cs</span><span class="p">);</span>
-      <span class="n">dict</span><span class="p">[</span><span class="n">clr</span><span class="p">]</span> <span class="p">=</span> <span class="n">list</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="nf">PixItData</span><span class="p">(</span><span class="n">wide</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dict</span><span class="p">);</span>
-  <span class="p">}</span>
+  private static PixItData ToPixItData(string json)
+  {
+    JObject o = JObject.Parse(json);
+    int size = o.SelectToken("pixelSize").Value&lt;int&gt;();
+    int wide = o.SelectToken("pixelsWide").Value&lt;int&gt;();
+    int high = o.SelectToken("pixelsHigh").Value&lt;int&gt;();
+    JToken bg = o.SelectToken("background");
+    Color? bgColor = null;
+    if (bg != null)
+    {
+      string bgStr = bg.Value&lt;string&gt;();
+      bgColor = ColorTranslator.FromHtml(bgStr);
+    }
+    JToken payload = o.SelectToken("payload");
+    var dict = new Dictionary&lt;Color, IEnumerable&lt;Pixel&gt;&gt;();
+    foreach (var token in payload)
+    {
+      var list = new List&lt;Pixel&gt;();
+      foreach (var xyArray in token.SelectToken("pixels"))
+      {
+        int x = xyArray[0].Value&lt;int&gt;();
+        int y = xyArray[1].Value&lt;int&gt;();
+        list.Add(new Pixel(x, y));
+      }
+      string cs = token.SelectToken("color").Value&lt;string&gt;();
+      Color clr = ColorTranslator.FromHtml(cs);
+      dict[clr] = list;
+    }
+    return new PixItData(wide, high, size, dict);
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="n">Image</span> <span class="nf">CreateImage</span><span class="p">(</span><span class="n">PixItData</span> <span class="n">data</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="kt">int</span> <span class="n">width</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsWide</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">height</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsHigh</span><span class="p">;</span>
-    <span class="kt">var</span> <span class="n">image</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Bitmap</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
-    <span class="k">using</span> <span class="p">(</span><span class="n">Graphics</span> <span class="n">g</span> <span class="p">=</span> <span class="n">Graphics</span><span class="p">.</span><span class="n">FromImage</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
-    <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">Background</span><span class="p">.</span><span class="n">HasValue</span><span class="p">)</span>
-      <span class="p">{</span>
-        <span class="n">Color</span> <span class="n">bgColor</span> <span class="p">=</span> <span class="n">data</span><span class="p">.</span><span class="n">Background</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">brush</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SolidBrush</span><span class="p">(</span><span class="n">bgColor</span><span class="p">))</span>
-        <span class="p">{</span>
-          <span class="n">g</span><span class="p">.</span><span class="n">FillRectangle</span><span class="p">(</span><span class="n">brush</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> 
-            <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsWide</span><span class="p">,</span> 
-            <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span> <span class="p">*</span> <span class="n">data</span><span class="p">.</span><span class="n">PixelsHigh</span><span class="p">);</span>
-        <span class="p">}</span>
-      <span class="p">}</span>
-      <span class="k">foreach</span> <span class="p">(</span><span class="n">Color</span> <span class="n">color</span> <span class="k">in</span> <span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">.</span><span class="n">Keys</span><span class="p">)</span>
-      <span class="p">{</span>
-        <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">brush</span> <span class="p">=</span> <span class="k">new</span> <span class="n">SolidBrush</span><span class="p">(</span><span class="n">color</span><span class="p">))</span>
-        <span class="p">{</span>
-          <span class="k">foreach</span> <span class="p">(</span><span class="n">Pixel</span> <span class="n">p</span> <span class="k">in</span> <span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">[</span><span class="n">color</span><span class="p">])</span>
-          <span class="p">{</span>
-            <span class="n">g</span><span class="p">.</span><span class="n">FillRectangle</span><span class="p">(</span><span class="n">brush</span><span class="p">,</span>
-              <span class="n">p</span><span class="p">.</span><span class="n">X</span><span class="p">*</span><span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-              <span class="n">p</span><span class="p">.</span><span class="n">Y</span><span class="p">*</span><span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-              <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">,</span>
-              <span class="n">data</span><span class="p">.</span><span class="n">PixelSize</span><span class="p">);</span>
-          <span class="p">}</span>
-        <span class="p">}</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="n">image</span><span class="p">;</span>
-  <span class="p">}</span>
+  private static Image CreateImage(PixItData data)
+  {
+    int width = data.PixelSize * data.PixelsWide;
+    int height = data.PixelSize * data.PixelsHigh;
+    var image = new Bitmap(width, height);
+    using (Graphics g = Graphics.FromImage(image))
+    {
+      if (data.Background.HasValue)
+      {
+        Color bgColor = data.Background.Value;
+        using (var brush = new SolidBrush(bgColor))
+        {
+          g.FillRectangle(brush, 0, 0, 
+            data.PixelSize * data.PixelsWide, 
+            data.PixelSize * data.PixelsHigh);
+        }
+      }
+      foreach (Color color in data.Data.Keys)
+      {
+        using (var brush = new SolidBrush(color))
+        {
+          foreach (Pixel p in data.Data[color])
+          {
+            g.FillRectangle(brush,
+              p.X*data.PixelSize,
+              p.Y*data.PixelSize,
+              data.PixelSize,
+              data.PixelSize);
+          }
+        }
+      }
+    }
+    return image;
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">string</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">Stream</span> <span class="n">s</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">s</span><span class="p">.</span><span class="n">Position</span> <span class="p">=</span> <span class="m">0</span><span class="p">;</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">inputStream</span> <span class="p">=</span> <span class="k">new</span> <span class="n">StreamReader</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="n">inputStream</span><span class="p">.</span><span class="n">ReadToEnd</span><span class="p">();</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+  private static string ReadJson(Stream s)
+  {
+    s.Position = 0;
+    using (var inputStream = new StreamReader(s))
+    {
+      return inputStream.ReadToEnd();
+    }
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">byte</span><span class="p">[]</span> <span class="nf">ToBuffer</span><span class="p">(</span><span class="n">Image</span> <span class="n">image</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">using</span> <span class="p">(</span><span class="kt">var</span> <span class="n">ms</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MemoryStream</span><span class="p">())</span>
-    <span class="p">{</span>
-      <span class="n">image</span><span class="p">.</span><span class="n">Save</span><span class="p">(</span><span class="n">ms</span><span class="p">,</span> <span class="n">ImageFormat</span><span class="p">.</span><span class="n">Png</span><span class="p">);</span>
-      <span class="k">return</span> <span class="n">ms</span><span class="p">.</span><span class="n">ToArray</span><span class="p">();</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+  private static byte[] ToBuffer(Image image)
+  {
+    using (var ms = new MemoryStream())
+    {
+      image.Save(ms, ImageFormat.Png);
+      return ms.ToArray();
+    }
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="k">void</span> <span class="nf">WriteResponse</span><span class="p">(</span><span class="n">HttpResponse</span> <span class="n">response</span><span class="p">,</span> 
-    <span class="kt">byte</span><span class="p">[]</span> <span class="n">buffer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">response</span><span class="p">.</span><span class="n">ContentType</span> <span class="p">=</span> <span class="s">"image/png"</span><span class="p">;</span>
-    <span class="n">response</span><span class="p">.</span><span class="n">BinaryWrite</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
-    <span class="n">response</span><span class="p">.</span><span class="n">Flush</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  private static void WriteResponse(HttpResponse response, 
+    byte[] buffer)
+  {
+    response.ContentType = "image/png";
+    response.BinaryWrite(buffer);
+    response.Flush();
+  }
+}
 </code></pre>
 <blockquote>
 <p>Warning: I take it for granted that you won’t put code this naïve into production, opening yourself up to denial-of-service attacks and what have you. It takes CPU and memory to produce images, you know.</p>
 </blockquote>
 <p>Of course, as always when using a custom HTTP handler, we must add the handler to <em>web.config</em>. Like so:</p>
-<pre class="codehilite"><code class="language-xml"><span></span><span class="nt">&lt;configuration&gt;</span>
-   <span class="nt">&lt;system.web&gt;</span>
-      <span class="nt">&lt;httpHandlers&gt;</span>
-         <span class="nt">&lt;add</span> <span class="na">verb=</span><span class="s">"POST"</span> <span class="na">path=</span><span class="s">"pix.it"</span> 
-              <span class="na">type=</span><span class="s">"ample.code.pixit.PixItHandler, PixItHandler"</span> <span class="nt">/&gt;</span>
-      <span class="nt">&lt;/httpHandlers&gt;</span>
-   <span class="nt">&lt;/system.web&gt;</span>
-<span class="nt">&lt;/configuration&gt;</span>
+<pre><code class="language-xml">&lt;configuration&gt;
+   &lt;system.web&gt;
+      &lt;httpHandlers&gt;
+         &lt;add verb="POST" path="pix.it" 
+              type="ample.code.pixit.PixItHandler, PixItHandler" /&gt;
+      &lt;/httpHandlers&gt;
+   &lt;/system.web&gt;
+&lt;/configuration&gt;
 </code></pre>
 <p>Note that we restrict the HTTP verb to POST, since we need the JSON data to produce the image.</p>
 <p>Now that we have the HTTP handler in place, we can try generating some images. A simple way to invoke the handler is to use <a href="http://www.fiddler2.com/fiddler2/">Fiddler</a>. Fiddler makes it very easy to build your own raw HTTP request, including a JSON payload. Just what we need. Let’s create a space invader!</p>
@@ -308,93 +308,93 @@
 <p><img src="/images/8ea71d084283/invader-black.png" alt="Space invader"></p>
 <p>Nice!</p>
 <p>Of course, we could create more elaborate images, using more pixels and more colors. For instance, the following JSON could be used to evoke the memory of a certain anti-hero named <a href="https://en.wikipedia.org/wiki/Leisure_Suit_Larry">Larry</a>, hailing from the hey-day of <a href="http://en.wikipedia.org/wiki/Sierra_Entertainment">Sierra On-Line</a>.</p>
-<pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span> 
-  <span class="nt">"background"</span><span class="p">:</span> <span class="s2">"#54FCFC"</span><span class="p">,</span>
-  <span class="nt">"pixelsWide"</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
-  <span class="nt">"pixelsHigh"</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span>
-  <span class="nt">"pixelSize"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-  <span class="nt">"payload"</span><span class="p">:</span> 
-  <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#000000"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">33</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">33</span><span class="p">]</span>
-      <span class="p">]</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#A8A8A8"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">24</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">24</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">24</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">24</span><span class="p">]</span>
-      <span class="p">]</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#FFFFFF"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">28</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">18</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">28</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">25</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">26</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">14</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">22</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">25</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">26</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> 
-        <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">24</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">25</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">26</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">28</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">24</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">25</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">26</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">28</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">29</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">31</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">32</span><span class="p">]</span>
-      <span class="p">]</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#FC5454"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">],</span> <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
+<pre><code class="language-json">{ 
+  "background": "#54FCFC",
+  "pixelsWide": 18,
+  "pixelsHigh": 36,
+  "pixelSize": 4,
+  "payload": 
+  [
+    {
+      "color" : "#000000",
+      "pixels" :
+      [
+        [2, 19],
+        [3, 19],
+        [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 33],
+        [5, 3], [5, 4], [5, 5], [5, 6], [5, 7], [5, 8], [5, 9], [5, 33],
+        [6, 2], [6, 3], [6, 4], [6, 5], [6, 6], [6, 7], [6, 8], [6, 9], [6, 10], [6, 11], [6, 33],
+        [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8], [7, 9], [7, 10], [7, 11], [7, 33],
+        [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 12],
+        [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 12],
+        [10, 2], [10, 3], [10, 12], [10, 13], [10, 14], [10, 15], [10, 18], [10, 19], [10, 20], [10, 21],
+        [11, 2], [11, 3], [11, 12], [11, 13], [11, 14], [11, 15], [11, 18], [11, 19], [11, 20], [11, 21],
+        [12, 3], [12, 5], [12, 33],
+        [13, 3], [13, 5], [13, 33],
+        [14, 33],
+        [15, 33]
+      ]
+    },
+    {
+      "color" : "#A8A8A8",
+      "pixels" :
+      [
+        [2, 15], [2, 16], [2, 17], [2, 18],
+        [3, 15], [3, 16], [3, 17], [3, 18],
+        [4, 14], [4, 15], [4, 16],
+        [5, 14], [5, 15], [5, 16],
+        [6, 15], [6, 16], [6, 17],
+        [7, 15], [7, 16], [7, 17],
+        [8, 18], [8, 24],
+        [9, 18], [9, 24],
+        [10, 22], [10, 23], [10, 24],
+        [11, 22], [11, 23], [11, 24]
+      ]
+    },
+    {
+      "color" : "#FFFFFF",
+      "pixels" :
+      [
+        [4, 30], [4, 31], [4, 32],
+        [5, 30], [5, 31], [5, 32],
+        [6, 12], [6, 13], [6, 14], [6, 18], [6, 19], [6, 20], [6, 21], [6, 22], [6, 23], [6, 27], [6, 28], [6, 29], [6, 30],
+        [7, 12], [7, 13], [7, 14], [7, 18], [7, 19], [7, 20], [7, 21], [7, 22], [7, 23], [7, 27], [7, 28], [7, 29], [7, 30],
+        [8, 13], [8, 14], [8, 15], [8, 16], [8, 17], [8, 19], [8, 20], [8, 21], [8, 22], [8, 23], [8, 25], [8, 26], [8, 27],
+        [9, 13], [9, 14], [9, 15], [9, 16], [9, 17], [9, 19], [9, 20], [9, 21], [9, 22], [9, 23], [9, 25], [9, 26], [9, 27],
+        [10, 16], [10, 17], 
+        [11, 16], [11, 17],
+        [12, 16], [12, 17], [12, 24], [12, 25], [12, 26], [12, 27], [12, 28], [12, 29], [12, 30], [12, 31], [12, 32],
+        [13, 16], [13, 17], [13, 24], [13, 25], [13, 26], [13, 27], [13, 28], [13, 29], [13, 30], [13, 31], [13, 32]
+      ]
+    },
+    {
+      "color" : "#FC5454",
+      "pixels" :
+      [
+        [4, 19], [4, 20],
+        [5, 19], [5, 20],
+        [8, 8], [8, 9], [8, 10], [8, 11],
+        [9, 8], [9, 9], [9, 10], [9, 11],
+        [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10],
+        [11, 5], [11, 6], [11, 7], [11, 8], [11, 9], [11, 10],
+        [12, 6], [12, 7], [12, 8], [12, 9],
+        [13, 6], [13, 7], [13, 8], [13, 9],
+        [14, 6], [14, 7], [14, 16], [14, 17],
+        [15, 6], [15, 7], [15, 16], [15, 17]
         
-      <span class="p">]</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"color"</span> <span class="p">:</span> <span class="s2">"#A80000"</span><span class="p">,</span>
-      <span class="nt">"pixels"</span> <span class="p">:</span>
-      <span class="p">[</span>
-        <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span>
-        <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-      <span class="p">]</span>
-    <span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">}</span>
+      ]
+    },
+    {
+      "color" : "#A80000",
+      "pixels" :
+      [
+        [8, 7],
+        [9, 7],
+        [10, 4], [11, 4], [12, 4], [13, 4]
+      ]
+    }
+  ]
+}
 </code></pre>
 <p>The result?</p>
 <p><img src="/images/66b0e352d65b/pix-it-larry.png" alt="Leisure Suit Larry as rendered by the pix-it HTTP handler."></p>

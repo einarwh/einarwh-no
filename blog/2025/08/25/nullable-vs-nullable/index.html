@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Nullable vs nullable in C# | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Nullable vs nullable in C#"><meta property="og:url" content="https://einarwh.no/blog/2025/08/25/nullable-vs-nullable/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Nullable vs nullable in C#</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Nullable vs nullable in C# | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Nullable vs nullable in C#"><meta property="og:url" content="https://einarwh.no/blog/2025/08/25/nullable-vs-nullable/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Nullable vs nullable in C#</h1>
 <p class="blog-post-date">August 25, 2025</p>
 <p>One of the most unfortunate parts of the nullability narrative in C# is the reuse of the <span class="inline-code">T?</span> syntax to denote two completely separate concepts for value types and reference types. This leads to some odd and confusing behaviour.</p>
 <p>As you may know, nullable value types is a much older concept than nullable reference types. Nullable value types were introduced in C# 2.0, whereas nullable reference types came in C# 8.0. And they’re not the same. Nullable isn’t nullable.</p>
@@ -7,49 +7,49 @@
 <p>“So what?” you may ask. How is this a problem? I’m glad you asked! Let’s take a look at an example to illustrate the consequences of overloading <span class="inline-code">T?</span> to mean different things for value types and reference types.</p>
 <p>The <a href="https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable?view=net-9.0">Enumerable</a> class contains many extension methods for types that implement the <span class="inline-code">IEnumerable&lt;T&gt;</span> interface. However, it does not contain a method that corresponds to <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-listmodule.html#choose">List.choose</a> in F#! Let’s try to fix that.</p>
 <p><span class="inline-code">List.choose</span> is interesting in that it combines the effect of <span class="inline-code">map</span> and <span class="inline-code">filter</span>, or <span class="inline-code">Select</span> and <span class="inline-code">Where</span> in C#. It maps each element of a list to an optional value of some type, and then it filters based on that mapping, keeping only the genuine values as it were. In case that’s not entirely clear, my first naive attempt at writing such a method in C# should make it clearer.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">SelectNotNull</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">,</span>
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">?&gt;</span> <span class="n">fn</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="n">source</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Cast</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;();</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public static IEnumerable&lt;TR&gt; SelectNotNull&lt;T, TR&gt;(
+    this IEnumerable&lt;T&gt; source,
+    Func&lt;T, TR?&gt; fn)
+{
+    return source.Select(fn)
+                 .Where(it =&gt; it != null)
+                 .Cast&lt;TR&gt;();
+}
 </code></pre>
 <p>This compiles, but unfortunately it doesn’t quite work.</p>
 <p>The intention here is to call the <span class="inline-code">fn</span> function on each element, and then to filter out any null values. You’ll note that <span class="inline-code">fn</span> returns a <span class="inline-code">TR?</span> value, indicating a nullable value (for value types), or at least something that could be null (for reference types), whereas the return type of <span class="inline-code">SelectNotNull</span> is <span class="inline-code">IEnumerable&lt;TR&gt;</span>. No allowance for null there. Indeed, that’s the whole point of <span class="inline-code">SelectNotNull</span>!</p>
 <p>What is the problem? After all, it compiles. Well, what happens when we try to use it?</p>
 <p>Let’s start with reference types. We write the following code to test our new method.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string?</span><span class="p">&gt;</span> <span class="n">maybeStrs</span> <span class="p">=</span> <span class="p">[</span><span class="s">"foo"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="s">"baz"</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="s">"quux"</span><span class="p">];</span>
-<span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="n">strs</span> <span class="p">=</span> <span class="n">maybeStrs</span><span class="p">.</span><span class="n">SelectNotNull</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span><span class="p">);</span>
+<pre><code class="language-csharp">IEnumerable&lt;string?&gt; maybeStrs = ["foo", null, "baz", null, "quux"];
+IEnumerable&lt;string&gt; strs = maybeStrs.SelectNotNull(it =&gt; it);
 </code></pre>
 <p>This works as intended! It filters out the nulls and gives us just the actual strings - as well as the type to go with it. Great stuff!</p>
 <p>Now let’s try value types. We write the equivalent code:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">int?</span><span class="p">&gt;</span> <span class="n">maybeNums</span> <span class="p">=</span> <span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="k">null</span><span class="p">,</span> <span class="m">7</span><span class="p">];</span>
-<span class="n">IEnumerable</span><span class="p">&lt;</span><span class="kt">int</span><span class="p">&gt;</span> <span class="n">nums</span> <span class="p">=</span> <span class="n">maybeNums</span><span class="p">.</span><span class="n">SelectNotNull</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span><span class="p">);</span>
+<pre><code class="language-csharp">IEnumerable&lt;int?&gt; maybeNums = [1, null, 3, null, 7];
+IEnumerable&lt;int&gt; nums = maybeNums.SelectNotNull(it =&gt; it);
 </code></pre>
 <p>It doesn’t compile! We get the compiler error <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/cs0266">CS0266</a>, with the explanation "cannot implicitly convert type <span class="inline-code">IEnumerable&lt;int?&gt;</span> to <span class="inline-code">IEnumerable&lt;int&gt;</span>. But how? Why? How can this be? First, it worked for strings, and second, the whole point of the method is that the return type sheds the possibility of null! So what implicit conversion could we possibly be talking about?</p>
 <p>Well. The problem is, of course, in the interpretation of the question mark. As I mentioned, the compiler can interpret <span class="inline-code">T?</span> in two very different ways: either as sugar for <span class="inline-code">Nullable&lt;T&gt;</span> or as <span class="inline-code">T</span>’y with a chance of null. What it can’t do is interpret it as <em>both at the same time</em>. It has to choose. And it sides with the reference type interpretation, apparently. Which means that for value types, there is no cast. It does filter, but that’s just half the job. I told it to cast. There’s a cast there.</p>
 <p>So. How can we fix this? Is it fixable? It is! Duplication to the rescue!</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">SelectNotNull</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">,</span>
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">?&gt;</span> <span class="n">fn</span><span class="p">)</span>
-    <span class="k">where</span> <span class="n">TR</span> <span class="p">:</span> <span class="k">class</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="n">source</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Cast</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;();</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public static IEnumerable&lt;TR&gt; SelectNotNull&lt;T, TR&gt;(
+    this IEnumerable&lt;T&gt; source,
+    Func&lt;T, TR?&gt; fn)
+    where TR : class
+{
+    return source.Select(fn)
+                 .Where(it =&gt; it != null)
+                 .Cast&lt;TR&gt;();
+}
 
-<span class="k">public</span> <span class="k">static</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">SelectNotNull</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;(</span>
-    <span class="k">this</span> <span class="n">IEnumerable</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">source</span><span class="p">,</span>
-    <span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">?&gt;</span> <span class="n">fn</span><span class="p">)</span>
-    <span class="k">where</span> <span class="n">TR</span> <span class="p">:</span> <span class="k">struct</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="n">source</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span>
-                 <span class="p">.</span><span class="n">Cast</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;();</span>
-<span class="p">}</span>
+public static IEnumerable&lt;TR&gt; SelectNotNull&lt;T, TR&gt;(
+    this IEnumerable&lt;T&gt; source,
+    Func&lt;T, TR?&gt; fn)
+    where TR : struct
+{
+    return source.Select(fn)
+                 .Where(it =&gt; it != null)
+                 .Cast&lt;TR&gt;();
+}
 </code></pre>
 <p>So, the only thing I’ve done here is to create two copies of the exact same code, and add a different type constraint to each copy. Now first, am I even allowed to do this? After all, I can’t declare methods with identical signatures in C#. But they’re not identical! They just look that way! Indeed the whole point is that constraining <span class="inline-code">TR</span> as class and struct means that <span class="inline-code">TR?</span> is interpreted to mean <span class="inline-code">TR</span> and <span class="inline-code">Nullable&lt;TR&gt;</span> respectively, creating unique overloads. The code just looks identical due to the overloaded syntax.</p>
 <blockquote>Note: I originally wrote that this overload was possible since type constraints are part of the method signature. This is inaccurate and misses the point I was trying to make :-)</blockquote>

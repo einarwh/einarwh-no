@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Proper JSON and property bags | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Proper JSON and property bags"><meta property="og:url" content="https://einarwh.no/blog/2020/05/13/proper-json-and-property-bags/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Proper JSON and property bags</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Proper JSON and property bags | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Proper JSON and property bags"><meta property="og:url" content="https://einarwh.no/blog/2020/05/13/proper-json-and-property-bags/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Proper JSON and property bags</h1>
 <p class="blog-post-date">May 13, 2020</p>
 <p>I recently wrote a blog post where I argued that “JSON serialization” as commonly practiced in the software industry is much too ambitious. This is the case at least in the .NET and Java ecosystems. I can’t really speak to the state of affairs in other ecosystems, although I note that the amount of human folly appears to be a universal constant much like gravity.</p>
 <p>The problem is that so-called “JSON serializers” handle not just serialization and deserialization of JSON, they tend to support arbitrary mapping between the JSON model and some other data model as well. This additional mapping, I argued, causes much unnecessary complexity and pain. Whereas serialization and deserialization of JSON is a “closed” problem with bounded complexity, arbitrary mapping between data models is an “open” problem with unbounded complexity. Hence JSON serializers should focus on the former and let us handle the latter by hand.</p>
@@ -17,46 +17,46 @@
 <p>To investigate our options, I’m going to need an example. I’m going to adapt the shopping cart example from Scott Wlaschin’s excellent <a href="https://pragprog.com/book/swdddf/domain-modeling-made-functional">book</a> on domain modelling with F#.</p>
 <p>A shopping cart can be in one of three states: <em>empty</em>, <em>active</em> or <em>paid</em>. How would we represent something like that as JSON documents?</p>
 <p>First, an empty shopping cart.</p>
-<pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span>
-  <span class="nt">"_state"</span><span class="p">:</span> <span class="s2">"empty"</span>
-<span class="p">}</span>
+<pre><code class="language-json">{
+  "_state": "empty"
+}
 </code></pre>
 <p>Second, an active shopping cart with two items in it, a gizmo and a widget. You’ll notice that items may have an optional description that we include when it’s present.</p>
-<pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span>
-  <span class="nt">"_state"</span><span class="p">:</span> <span class="s2">"active"</span><span class="p">,</span>
-  <span class="nt">"unpaidItems"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"1bcd"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"widget"</span><span class="p">,</span>
-      <span class="nt">"description"</span><span class="p">:</span> <span class="s2">"A very useful item"</span>
-    <span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">}</span>
+<pre><code class="language-json">{
+  "_state": "active",
+  "unpaidItems": [
+    {
+      "id": "1bcd",
+      "title": "gizmo"
+    },
+    {
+      "id": "3cdf",
+      "title": "widget",
+      "description": "A very useful item"
+    }
+  ]
+}
 </code></pre>
 <p>And finally, a paid shopping cart with two items in it, the amount and currency paid, and a timestamp for the transaction.</p>
-<pre class="codehilite"><code class="language-json"><span></span><span class="p">{</span>
-  <span class="nt">"_state"</span><span class="p">:</span> <span class="s2">"paid"</span><span class="p">,</span>
-  <span class="nt">"paidItems"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"1bcd"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"gizmo"</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"3cdf"</span><span class="p">,</span>
-      <span class="nt">"title"</span><span class="p">:</span> <span class="s2">"widget"</span><span class="p">,</span>
-      <span class="nt">"description"</span><span class="p">:</span> <span class="s2">"A very useful item"</span>
-    <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="nt">"payment"</span><span class="p">:</span> <span class="p">{</span>
-    <span class="nt">"amount"</span><span class="p">:</span> <span class="mf">123.5</span><span class="p">,</span>
-    <span class="nt">"currency"</span><span class="p">:</span> <span class="s2">"USD"</span>
-  <span class="p">},</span>
-  <span class="nt">"timestamp"</span><span class="p">:</span> <span class="s2">"2020-04-11T10:11:33.514+02:00"</span>
-<span class="p">}</span>
+<pre><code class="language-json">{
+  "_state": "paid",
+  "paidItems": [
+    {
+      "id": "1bcd",
+      "title": "gizmo"
+    },
+    {
+      "id": "3cdf",
+      "title": "widget",
+      "description": "A very useful item"
+    }
+  ],
+  "payment": {
+    "amount": 123.5,
+    "currency": "USD"
+  },
+  "timestamp": "2020-04-11T10:11:33.514+02:00"
+}
 </code></pre>
 <p>You’ll notice that I’ve added a <code>_state</code> property to make it easier for a client to check which case they’re dealing with. This is known as a <em>discriminator</em> in OpenAPI, and can be used with the <code>oneOf</code> construct to create a composite schema for a JSON document.</p>
 <p>So what are our options for explicit representations of these JSON documents in code?</p>
@@ -70,51 +70,51 @@
 <h2>Explicit JSON model</h2>
 <p>Let’s start by using an explicit JSON model. An obvious possibility is to use the JSON model from whatever JSON serializer library we happen to be using. In this case, we’ll use the model offered by Newtonsoft.</p>
 <p>We’ll look at serialization first. Here’s how we might create a paid cart as a <code>JObject</code> and use it to serialize to the appropriate JSON.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartObject</span> <span class="p">=</span> <span class="k">new</span> <span class="n">JObject</span><span class="p">(</span>
-  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"_state"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)),</span>
-  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"paidItems"</span><span class="p">,</span>
-    <span class="k">new</span> <span class="nf">JArray</span><span class="p">(</span>
-      <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"id"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"1bcd"</span><span class="p">)),</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"gizmo"</span><span class="p">))),</span>
-      <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"id"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"3cdf"</span><span class="p">)),</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"title"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"widget"</span><span class="p">)),</span>
-        <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"description"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"A very useful item"</span><span class="p">))))),</span>
-  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"payment"</span><span class="p">,</span>
-    <span class="k">new</span> <span class="nf">JObject</span><span class="p">(</span>
-      <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"amount"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="m">123.5</span><span class="p">)),</span>
-      <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"currency"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"USD"</span><span class="p">)))),</span>
-  <span class="k">new</span> <span class="nf">JProperty</span><span class="p">(</span><span class="s">"timestamp"</span><span class="p">,</span> <span class="k">new</span> <span class="n">JValue</span><span class="p">(</span><span class="s">"2020-04-11T10:11:33.514+02:00"</span><span class="p">)));</span>
+<pre><code class="language-csharp">var paidCartObject = new JObject(
+  new JProperty("_state", new JValue("paid")),
+  new JProperty("paidItems",
+    new JArray(
+      new JObject(
+        new JProperty("id", new JValue("1bcd")),
+        new JProperty("title", new JValue("gizmo"))),
+      new JObject(
+        new JProperty("id", new JValue("3cdf")),
+        new JProperty("title", new JValue("widget")),
+        new JProperty("description", new JValue("A very useful item"))))),
+  new JProperty("payment",
+    new JObject(
+      new JProperty("amount", new JValue(123.5)),
+      new JProperty("currency", new JValue("USD")))),
+  new JProperty("timestamp", new JValue("2020-04-11T10:11:33.514+02:00")));
 </code></pre>
 <p>There’s no denying it: it is a bit verbose. At the same time, it’s very clear what we’re creating. We are making no assumptions that could be invalidated by future changes. We have full control over the JSON since we are constructing it by hand. We have no problems with optional properties.</p>
 <p>What about deserialization?</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
-<span class="s">  ""_state"": ""paid"",</span>
-<span class="s">  ""paidItems"": [</span>
-<span class="s">    {</span>
-<span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo""</span>
-<span class="s">    },</span>
-<span class="s">    {</span>
-<span class="s">      ""id"" : ""3cdf"",</span>
-<span class="s">      ""title"": ""widget"",</span>
-<span class="s">      ""description"": ""A very useful item""</span>
-<span class="s">    }</span>
-<span class="s">  ],</span>
-<span class="s">  ""payment"": {</span>
-<span class="s">    ""amount"": 123.5,</span>
-<span class="s">    ""currency"": ""USD""</span>
-<span class="s">  },</span>
-<span class="s">  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""</span>
-<span class="s">}"</span><span class="p">;</span>
+<pre><code class="language-csharp">var paidCartJsonString = @"{
+  ""_state"": ""paid"",
+  ""paidItems"": [
+    {
+      ""id"": ""1bcd"",
+      ""title"": ""gizmo""
+    },
+    {
+      ""id"" : ""3cdf"",
+      ""title"": ""widget"",
+      ""description"": ""A very useful item""
+    }
+  ],
+  ""payment"": {
+    ""amount"": 123.5,
+    ""currency"": ""USD""
+  },
+  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""
+}";
 
-<span class="kt">var</span> <span class="n">paidCartDeserialized</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">DeserializeObject</span><span class="p">(</span><span class="n">paidCartJsonText</span><span class="p">);</span>
+var paidCartDeserialized = JsonConvert.DeserializeObject(paidCartJsonText);
 
-<span class="kt">var</span> <span class="n">firstItemTitleToken</span> <span class="p">=</span> <span class="n">paidCartDeserialized</span><span class="p">[</span><span class="s">"paidItems"</span><span class="p">][</span><span class="m">0</span><span class="p">][</span><span class="s">"title"</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">firstItemTitle</span> <span class="p">=</span> <span class="p">((</span><span class="n">JValue</span><span class="p">)</span> <span class="n">firstItemTitleToken</span><span class="p">).</span><span class="n">Value</span><span class="p">;</span>
-<span class="kt">var</span> <span class="n">paymentCurrencyToken</span> <span class="p">=</span> <span class="n">paidCartDeserialized</span><span class="p">[</span><span class="s">"payment"</span><span class="p">][</span><span class="s">"currency"</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">paymentCurrency</span> <span class="p">=</span> <span class="p">((</span><span class="n">JValue</span><span class="p">)</span> <span class="n">paymentCurrencyToken</span><span class="p">).</span><span class="n">Value</span><span class="p">;</span>
+var firstItemTitleToken = paidCartDeserialized["paidItems"][0]["title"];
+var firstItemTitle = ((JValue) firstItemTitleToken).Value;
+var paymentCurrencyToken = paidCartDeserialized["payment"]["currency"];
+var paymentCurrency = ((JValue) paymentCurrencyToken).Value;
 </code></pre>
 <p>The deserialization itself is trivial, a one-liner. More importantly: there is no configuration involved, which is great news. Deserialization is often a one-liner, but you have to set up and configure the JSON serializer “just so” to get the output you want. Not so in this case. There are no hidden mechanisms and hence no surprises.</p>
 <p>We can read data from the deserialized <code>JObject</code> by using indexers, which read pretty nicely. Unfortunately the last step is a little bit cumbersome, since we need to cast the <code>JToken</code> to a <code>JValue</code> before we can actually get to the value itself. Also, we obviously have to make sure that we get the property names right.</p>
@@ -130,212 +130,212 @@
 <p>Even with those restrictions, we still have many choices to make. In fact, it’s going to be a little difficult to achieve the results we want without breaking the no-configuration goal.</p>
 <p>First we’re going to have to make some decisions about property names. In C#, the convention is to use PascalCase for properties, whereas our JSON documents use camelCase. This is a bit of a “when in Rome” issue, with the complicating matter that there are two Romes. There are two possible resolutions to this problem.</p>
 <p>One option is to combine an assumption with an admission. That is, we can 1) make the assumption that our JSON documents only will contain “benign” property names that don’t contain whitespace or control characters and 2) accept that our DTOs will have property names that violate the sensitivies of a C# style checker. That will yield the following set of DTOs:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">_state</span> <span class="p">=</span> <span class="n">state</span><span class="p">;</span>
-  <span class="p">}</span>
+<pre><code class="language-csharp">public abstract class ShoppingCart
+{
+  public ShoppingCart(string state)
+  {
+    _state = state;
+  }
 
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">_state</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  public string _state { get; }
+}
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">EmptyCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">EmptyCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"empty"</span><span class="p">)</span> <span class="p">{}</span>
-<span class="p">}</span>
+public class EmptyCart : ShoppingCart
+{
+  public EmptyCart() : base("empty") {}
+}
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">ActiveCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ActiveCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"active"</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">unpaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+public class ActiveCart : ShoppingCart
+{
+  public ActiveCart() : base("active") { }
+  public Item[] unpaidItems { get; set; }
+}
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">PaidCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">PaidCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)</span> <span class="p">{}</span>
-  <span class="k">public</span> <span class="kt">object</span><span class="p">[]</span> <span class="n">paidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="n">Money</span> <span class="n">payment</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">timestamp</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+public class PaidCart : ShoppingCart
+{
+  public PaidCart() : base("paid") {}
+  public object[] paidItems { get; set; }
+  public Money payment { get; set; }
+  public string timestamp { get; set; }
+}
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">Item</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">title</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">description</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+public class Item
+{
+  public string id { get; set; }
+  public string title { get; set; }
+  public string description { get; set; }
+}
 
-<span class="k">public</span> <span class="k">class</span> <span class="nc">Money</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="kt">float</span> <span class="n">amount</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">currency</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+public class Money
+{
+  public float amount { get; set; }
+  public string currency { get; set; }
+}
 </code></pre>
 <p>Depending on your sensitivies, you may have run away screaming at this point. A benefit however, is that it works reasonably well out of the box. The property names in the DTOs and in the JSON are identical, which makes sense since the DTOs are a representation of the same property bags we find in the JSON. In this scenario, coupling of names is actually a good thing.</p>
 <p>Another option is to add <em>custom attributes</em> to the properties of our DTOs. Custom attributes are a mechanism that some JSON serializers employ to let us create an explicit mapping between property names in our data model and property names in the JSON document. This clearly is a violation of the no-configuration rule, though. Do it at your own peril.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">abstract</span> <span class="k">class</span> <span class="nc">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ShoppingCart</span><span class="p">(</span><span class="kt">string</span> <span class="n">state</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">State</span> <span class="p">=</span> <span class="n">state</span><span class="p">;</span>
-  <span class="p">}</span>
+<pre><code class="language-csharp">abstract class ShoppingCart
+{
+  public ShoppingCart(string state)
+  {
+    State = state;
+  }
 
-<span class="na">  [JsonProperty("_state")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">State</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("_state")]
+  public string State { get; }
+}
 
-<span class="k">class</span> <span class="nc">EmptyCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">EmptyCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"empty"</span><span class="p">)</span> <span class="p">{}</span>
-<span class="p">}</span>
+class EmptyCart : ShoppingCart
+{
+  public EmptyCart() : base("empty") {}
+}
 
-<span class="k">class</span> <span class="nc">ActiveCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">ActiveCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)</span> <span class="p">{</span> <span class="p">}</span>
+class ActiveCart : ShoppingCart
+{
+  public ActiveCart() : base("paid") { }
 
-<span class="na">  [JsonProperty("unpaidItems")]</span>
-  <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">UnpaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("unpaidItems")]
+  public Item[] UnpaidItems { get; set; }
+}
 
-<span class="k">class</span> <span class="nc">PaidCart</span> <span class="p">:</span> <span class="n">ShoppingCart</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="nf">PaidCart</span><span class="p">()</span> <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="s">"paid"</span><span class="p">)</span> <span class="p">{}</span>
+class PaidCart : ShoppingCart
+{
+  public PaidCart() : base("paid") {}
 
-<span class="na">  [JsonProperty("paidItems")]</span>
-  <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">PaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("paidItems")]
+  public Item[] PaidItems { get; set; }
 
-<span class="na">  [JsonProperty("payment")]</span>
-  <span class="k">public</span> <span class="n">Money</span> <span class="n">Payment</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("payment")]
+  public Money Payment { get; set; }
 
-<span class="na">  [JsonProperty("timestamp")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Timestamp</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("timestamp")]
+  public string Timestamp { get; set; }
+}
 
-<span class="k">class</span> <span class="nc">Item</span>
-<span class="p">{</span>
-<span class="na">  [JsonProperty("id")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Id</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+class Item
+{
+  [JsonProperty("id")]
+  public string Id { get; set; }
 
-<span class="na">  [JsonProperty("title")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Title</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("title")]
+  public string Title { get; set; }
 
-<span class="na">  [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Description</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
+  public string Description { get; set; }
+}
 
-<span class="k">class</span> <span class="nc">Money</span>
-<span class="p">{</span>
-<span class="na">  [JsonProperty("amount")]</span>
-  <span class="k">public</span> <span class="kt">double</span> <span class="n">Amount</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+class Money
+{
+  [JsonProperty("amount")]
+  public double Amount { get; set; }
 
-<span class="na">  [JsonProperty("currency")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Currency</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("currency")]
+  public string Currency { get; set; }
+}
 </code></pre>
 <p>This yields perhaps more conventional-looking DTOs. They are, however, now littered with custom attributes specific to the JSON serializer I’m using. There’s really a lot of configuration going on: every property is being reconfigured to use a different name.</p>
 <p>We also have the slightly strange situation where the property names for the DTOs don’t really matter. It is a decoupling of sorts, but it doesn’t really do much work for us, seeing as the whole purpose of the DTO is to represent the data being transferred.</p>
 <p>But ok. Let’s look at how our DTOs hold up as source models for serialization and target models for deserialization, respectively.</p>
 <p>Here’s how you would create an instance of DTO v1 and serialize it to JSON.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartDto1</span> <span class="p">=</span> <span class="k">new</span> <span class="n">PaidCart</span>
-<span class="p">{</span>
-  <span class="n">paidItems</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Item</span><span class="p">[]</span> <span class="p">{</span>
-    <span class="k">new</span> <span class="n">Item</span> <span class="p">{</span>
-      <span class="n">id</span> <span class="p">=</span> <span class="s">"1bcd"</span><span class="p">,</span>
-      <span class="n">title</span> <span class="p">=</span> <span class="s">"gizmo"</span>
-    <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Item</span> <span class="p">{</span>
-      <span class="n">id</span> <span class="p">=</span> <span class="s">"3cdf"</span><span class="p">,</span>
-      <span class="n">title</span> <span class="p">=</span> <span class="s">"widget"</span><span class="p">,</span>
-      <span class="n">description</span> <span class="p">=</span> <span class="s">"A very useful item"</span>
-    <span class="p">}</span>
-  <span class="p">},</span>
-  <span class="n">payment</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Money</span> <span class="p">{</span>
-    <span class="n">mount</span> <span class="p">=</span> <span class="m">123.5</span><span class="p">,</span>
-    <span class="n">currency</span> <span class="p">=</span> <span class="s">"USD"</span>
-  <span class="p">},</span>
-  <span class="n">timestamp</span> <span class="p">=</span> <span class="s">"2020-04-11T10:11:33.514+02:00"</span>
-<span class="p">};</span>
+<pre><code class="language-csharp">var paidCartDto1 = new PaidCart
+{
+  paidItems = new Item[] {
+    new Item {
+      id = "1bcd",
+      title = "gizmo"
+    },
+    new Item {
+      id = "3cdf",
+      title = "widget",
+      description = "A very useful item"
+    }
+  },
+  payment = new Money {
+    mount = 123.5,
+    currency = "USD"
+  },
+  timestamp = "2020-04-11T10:11:33.514+02:00"
+};
 
-<span class="kt">var</span> <span class="n">paidCartDto1JsonText</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">SerializeObject</span><span class="p">(</span><span class="n">paidCartDto1</span><span class="p">);</span>
+var paidCartDto1JsonText = JsonConvert.SerializeObject(paidCartDto1);
 </code></pre>
 <p>It’s pretty succinct and legible, and arguably looks quite similar to the JSON text it serializes to. However, there is a small caveat: our optional description is included with a <code>null</code> value in the JSON. That’s not really what we aimed for. To change that behaviour, we can configure our JSON serializer to omit properties with <code>null</code> values from the serialized output. But now we have two problems. The first is that we had to resort to configuration, the second is that we’ve placed a bet: that all properties with <code>null</code> values should always be omitted from the output. That’s the case today, but it could definitely change. To gain more fine-grained control, we’d have to dig out more granular and intrusive configuration options, like custom attributes or custom serializers. Or perhaps some combination? That’s even worse, now our configuration is spread over multiple locations - who knows what the aggregated behavior is and why?</p>
 <p>What about DTO v2? The code looks very similar, except it follows C# property naming standards and at the same time deviates a little bit from the property names that we actually find in the JSON document. We’d have to look at the definition of the <code>PaidCart</code> to convince ourselves that it probably will serialize to the appropriate JSON text, since we find the JSON property names there - not at the place we’re creating our DTO.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartDto2</span> <span class="p">=</span> <span class="k">new</span> <span class="n">PaidCart</span>
-<span class="p">{</span>
-  <span class="n">PaidItems</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Item</span><span class="p">[]</span> <span class="p">{</span>
-    <span class="k">new</span> <span class="n">Item</span> <span class="p">{</span>
-      <span class="n">Id</span> <span class="p">=</span> <span class="s">"1bcd"</span><span class="p">,</span>
-      <span class="n">Title</span> <span class="p">=</span> <span class="s">"gizmo"</span>
-    <span class="p">},</span>
-    <span class="k">new</span> <span class="n">Item</span> <span class="p">{</span>
-      <span class="n">Id</span> <span class="p">=</span> <span class="s">"3cdf"</span><span class="p">,</span>
-      <span class="n">Title</span> <span class="p">=</span> <span class="s">"widget"</span><span class="p">,</span>
-      <span class="n">Description</span> <span class="p">=</span> <span class="s">"A very useful item"</span>
-    <span class="p">}</span>
-  <span class="p">},</span>
-  <span class="n">Payment</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Money</span> <span class="p">{</span>
-    <span class="n">Mount</span> <span class="p">=</span> <span class="m">123.5</span><span class="p">,</span>
-    <span class="n">Currency</span> <span class="p">=</span> <span class="s">"USD"</span>
-  <span class="p">},</span>
-  <span class="n">Timestamp</span> <span class="p">=</span> <span class="s">"2020-04-11T10:11:33.514+02:00"</span>
-<span class="p">};</span>
+<pre><code class="language-csharp">var paidCartDto2 = new PaidCart
+{
+  PaidItems = new Item[] {
+    new Item {
+      Id = "1bcd",
+      Title = "gizmo"
+    },
+    new Item {
+      Id = "3cdf",
+      Title = "widget",
+      Description = "A very useful item"
+    }
+  },
+  Payment = new Money {
+    Mount = 123.5,
+    Currency = "USD"
+  },
+  Timestamp = "2020-04-11T10:11:33.514+02:00"
+};
 
-<span class="kt">var</span> <span class="n">paidCartDto2JsonText</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">SerializeObject</span><span class="p">(</span><span class="n">paidCartDto2</span><span class="p">);</span>
+var paidCartDto2JsonText = JsonConvert.SerializeObject(paidCartDto2);
 </code></pre>
 <p>A benefit is that since we already littered the DTO with custom attributes, I made sure to add a <code>NullValueHandling.Ignore</code> to the <code>Description</code> property, so that the property is not included in the JSON if the value is <code>null</code>. Of course I had to Google how to do it, since I can’t ever remember all the configuration options and how they fit together.</p>
 <p>So that’s serialization. We can get it working, but it’s obvious that the loss of control compared to using the explicit JSON model is pushing us towards making assumptions and having to rely on configuration to tweak the JSON output. We’ve started pushing buttons and levers. The daemon is banging against walls of the black box.</p>
 <p>What about deserialization? Here’s how it looks for a paid cart using DTO v2:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
-<span class="s">  ""_state"": ""paid"",</span>
-<span class="s">  ""paidItems"": [</span>
-<span class="s">    {</span>
-<span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo""</span>
-<span class="s">    },</span>
-<span class="s">    {</span>
-<span class="s">      ""id"" : ""3cdf"",</span>
-<span class="s">      ""title"": ""widget"",</span>
-<span class="s">      ""description"": ""A very useful item""</span>
-<span class="s">    }</span>
-<span class="s">  ],</span>
-<span class="s">  ""payment"": {</span>
-<span class="s">    ""amount"": 123.5,</span>
-<span class="s">    ""currency"": ""USD""</span>
-<span class="s">  },</span>
-<span class="s">  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""</span>
-<span class="s">}"</span><span class="p">;</span>
+<pre><code class="language-csharp">var paidCartJsonString = @"{
+  ""_state"": ""paid"",
+  ""paidItems"": [
+    {
+      ""id"": ""1bcd"",
+      ""title"": ""gizmo""
+    },
+    {
+      ""id"" : ""3cdf"",
+      ""title"": ""widget"",
+      ""description"": ""A very useful item""
+    }
+  ],
+  ""payment"": {
+    ""amount"": 123.5,
+    ""currency"": ""USD""
+  },
+  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""
+}";
 
-<span class="kt">var</span> <span class="n">paidCartDtoFromText</span> <span class="p">=</span> <span class="n">JsonConvert</span>
-  <span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">PaidCart</span><span class="p">&gt;(</span><span class="n">paidCartJsonString</span><span class="p">);</span>
+var paidCartDtoFromText = JsonConvert
+  .DeserializeObject&lt;PaidCart&gt;(paidCartJsonString);
 
-<span class="kt">var</span> <span class="n">firstItemTitle</span> <span class="p">=</span> <span class="n">paidCartDtoFromText</span><span class="p">.</span><span class="n">PaidItems</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">Title</span><span class="p">;</span>
-<span class="kt">var</span> <span class="n">currency</span> <span class="p">=</span> <span class="n">paidCartDtoFromText</span><span class="p">.</span><span class="n">Payment</span><span class="p">.</span><span class="n">Currency</span><span class="p">;</span>
+var firstItemTitle = paidCartDtoFromText.PaidItems[0].Title;
+var currency = paidCartDtoFromText.Payment.Currency;
 </code></pre>
 <p>Well, what can I say. It’s quite easy if we know in advance if we’re dealing with an empty cart, an active cart or a paid cart! And it’s very easy and access the various property values.</p>
 <p>But of course we generally <em>don’t</em> know what kind of shopping the JSON document describes. That information is in the JSON document!</p>
 <p>What we would like to write in our code is something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">shoppingCartDtoFromText</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">ShoppingCart</span><span class="p">&gt;(</span><span class="n">jsonText</span><span class="p">);</span>
+<pre><code class="language-csharp">var shoppingCartDtoFromText = JsonConvert.DeserializeObject&lt;ShoppingCart&gt;(jsonText);
 </code></pre>
 <p>But the poor JSON serializer can’t do that, not without help! The problem is that the JSON serializer doesn’t know which subclass of <code>_ShoppingCart_</code> to instantiate. In fact, it doesn’t even know that the subclasses exist.</p>
 <p>We have three choices at this point. First, we can create a third variation of our DTO, one that doesn’t have this problem. We could just the collapse our fancy class hierarchy and use something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">ShoppingCart</span>
-<span class="p">{</span>
-<span class="na">  [JsonProperty("_state")]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">State</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+<pre><code class="language-csharp">class ShoppingCart
+{
+  [JsonProperty("_state")]
+  public string State { get; set; }
 
-<span class="na">  [JsonProperty("unpaidItems", NullValueHandling = NullValueHandling.Ignore)]</span>
-  <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">UnpaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("unpaidItems", NullValueHandling = NullValueHandling.Ignore)]
+  public Item[] UnpaidItems { get; set; }
 
-<span class="na">  [JsonProperty("paidItems", NullValueHandling = NullValueHandling.Ignore)]</span>
-  <span class="k">public</span> <span class="n">Item</span><span class="p">[]</span> <span class="n">PaidItems</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("paidItems", NullValueHandling = NullValueHandling.Ignore)]
+  public Item[] PaidItems { get; set; }
 
-<span class="na">  [JsonProperty("payment", NullValueHandling = NullValueHandling.Ignore)]</span>
-  <span class="k">public</span> <span class="n">Money</span> <span class="n">Payment</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
+  [JsonProperty("payment", NullValueHandling = NullValueHandling.Ignore)]
+  public Money Payment { get; set; }
 
-<span class="na">  [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]</span>
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Timestamp</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="k">set</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+  [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
+  public string Timestamp { get; set; }
+}
 </code></pre>
 <p>It’s not ideal, to put it mildly. I think we can probably agree that this is not a good DTO, as it completely muddles together what was clearly three distinct kinds of JSON documents. We’ve lost that now, in an effort to make the JSON deserialization process easier.</p>
 <p>The second option is to pull out the big guns and write a custom deserializer. That way we can sneak a peek at the <code>_state</code> property in the JSON document, and based on that create the appropriate object instance. To manage that requires, needless to say, a fair bit of knowledge of the workings of our JSON serializer. Chances are your custom deserializer will be buggy. If the JSON document format and hence the DTOs are subject to change (as typically happens), changes are it will stay buggy over time.</p>
@@ -345,257 +345,257 @@
 <h2>Anonymous classes</h2>
 <p>We can avoid the chore of having to write and maintain such classes by using anonymous classes in C# as DTOs instead. It might not be as silly as it sounds, at least for simple use cases.</p>
 <p>For the serialization case, it would look something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartAnon</span> <span class="p">=</span> <span class="k">new</span>
-<span class="p">{</span>
-  <span class="n">_state</span> <span class="p">=</span> <span class="s">"paid"</span><span class="p">,</span>
-  <span class="n">paidItems</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">object</span><span class="p">[]</span> <span class="p">{</span>
-    <span class="k">new</span> <span class="p">{</span>
-      <span class="n">id</span> <span class="p">=</span> <span class="s">"1bcd"</span><span class="p">,</span>
-      <span class="n">title</span> <span class="p">=</span> <span class="s">"gizmo"</span>
-    <span class="p">},</span>
-    <span class="k">new</span> <span class="p">{</span>
-      <span class="n">id</span> <span class="p">=</span> <span class="s">"3cdf"</span><span class="p">,</span>
-      <span class="n">title</span> <span class="p">=</span> <span class="s">"widget"</span><span class="p">,</span>
-      <span class="n">description</span> <span class="p">=</span> <span class="s">"A very useful item"</span>
-    <span class="p">}</span>
-  <span class="p">},</span>
-  <span class="n">payment</span> <span class="p">=</span> <span class="k">new</span> <span class="p">{</span>
-    <span class="n">mount</span> <span class="p">=</span> <span class="m">123.5</span><span class="p">,</span>
-    <span class="n">currency</span> <span class="p">=</span> <span class="s">"USD"</span>
-  <span class="p">},</span>
-  <span class="n">timestamp</span> <span class="p">=</span> <span class="s">"2020-04-11T10:11:33.514+02:00"</span>
-<span class="p">};</span>
+<pre><code class="language-csharp">var paidCartAnon = new
+{
+  _state = "paid",
+  paidItems = new object[] {
+    new {
+      id = "1bcd",
+      title = "gizmo"
+    },
+    new {
+      id = "3cdf",
+      title = "widget",
+      description = "A very useful item"
+    }
+  },
+  payment = new {
+    mount = 123.5,
+    currency = "USD"
+  },
+  timestamp = "2020-04-11T10:11:33.514+02:00"
+};
 
-<span class="kt">var</span> <span class="n">paidCartAnonJsonText</span> <span class="p">=</span> <span class="n">JsonConvert</span><span class="p">.</span><span class="n">SerializeObject</span><span class="p">(</span><span class="n">paidCartAnon</span><span class="p">);</span>
+var paidCartAnonJsonText = JsonConvert.SerializeObject(paidCartAnon);
 </code></pre>
 <p>This is actually very clean! The code looks really similar to the target JSON output. You may notice that the <code>paidItems</code> array is typed as <code>object</code>. This is to allow for the optional <code>description</code> of items. The two items are actually instances of distinct anonymous classes generated by the compiler. One is a DTO with two properties, the other a DTO with three properties. For the compiler, the two DTOs have no more in common than the fact that they are both objects.</p>
 <p>As long as we’re fine with betting that the property names of the target JSON output will never contain whitespace or control characters, this isn’t actually a bad choice. No configuration is necessary to handle the optional field appropriately.</p>
 <p>A short-coming compared to explicit DTOs is ease of composition and reuse across multiple DTOs. That’s not an issue in the simple shopping cart example, but it is likely that you will encounter it in a real-world scenario. Presumably you will have smaller DTOs that are building blocks for multiple larger DTOs. That might be more cumbersome to do using anonymous DTOs.</p>
 <p>What about deserialization? Surely it doesn’t make sense to use an anonymous type as target model for deserialization? Newtonsoft thinks otherwise! Ambitious JSON serializers indeed!</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
-<span class="s">  ""_state"": ""paid"",</span>
-<span class="s">  ""paidItems"": [</span>
-<span class="s">    {</span>
-<span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo""</span>
-<span class="s">    },</span>
-<span class="s">    {</span>
-<span class="s">      ""id"" : ""3cdf"",</span>
-<span class="s">      ""title"": ""widget"",</span>
-<span class="s">      ""description"": ""A very useful item""</span>
-<span class="s">    }</span>
-<span class="s">  ],</span>
-<span class="s">  ""payment"": {</span>
-<span class="s">    ""amount"": 123.5,</span>
-<span class="s">    ""currency"": ""USD""</span>
-<span class="s">  },</span>
-<span class="s">  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""</span>
-<span class="s">}"</span><span class="p">;</span>
+<pre><code class="language-csharp">var paidCartJsonString = @"{
+  ""_state"": ""paid"",
+  ""paidItems"": [
+    {
+      ""id"": ""1bcd"",
+      ""title"": ""gizmo""
+    },
+    {
+      ""id"" : ""3cdf"",
+      ""title"": ""widget"",
+      ""description"": ""A very useful item""
+    }
+  ],
+  ""payment"": {
+    ""amount"": 123.5,
+    ""currency"": ""USD""
+  },
+  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""
+}";
 
-<span class="kt">var</span> <span class="n">anonymousPaidCartObject</span> <span class="p">=</span> <span class="n">JsonConvert</span>
-  <span class="p">.</span><span class="n">DeserializeAnonymousType</span><span class="p">(</span><span class="n">paidCartJsonString</span><span class="p">,</span>
-    <span class="k">new</span>
-    <span class="p">{</span>
-      <span class="n">_state</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
-      <span class="n">paidItems</span> <span class="p">=</span> <span class="k">new</span> <span class="p">[]</span> <span class="p">{</span>
-      <span class="k">new</span> <span class="p">{</span>
-        <span class="n">id</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
-        <span class="n">title</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">),</span>
-        <span class="n">description</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span>
-      <span class="p">}</span>
-    <span class="p">},</span>
-      <span class="n">payment</span> <span class="p">=</span> <span class="k">new</span>
-      <span class="p">{</span>
-        <span class="n">amount</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
-        <span class="n">currency</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span>
-      <span class="p">},</span>
-      <span class="n">timestamp</span> <span class="p">=</span> <span class="k">default</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span>
-    <span class="p">});</span>
+var anonymousPaidCartObject = JsonConvert
+  .DeserializeAnonymousType(paidCartJsonString,
+    new
+    {
+      _state = default(string),
+      paidItems = new [] {
+      new {
+        id = default(string),
+        title = default(string),
+        description = default(string)
+      }
+    },
+      payment = new
+      {
+        amount = default(double),
+        currency = default(string)
+      },
+      timestamp = default(string)
+    });
 
-<span class="kt">var</span> <span class="n">firstItemTitle</span> <span class="p">=</span> <span class="n">anonymousPaidCartObject</span><span class="p">.</span><span class="n">paidItems</span><span class="p">[</span><span class="m">0</span><span class="p">].</span><span class="n">title</span><span class="p">;</span>
-<span class="kt">var</span> <span class="n">currency</span> <span class="p">=</span> <span class="n">anonymousPaidCartObject</span><span class="p">.</span><span class="n">payment</span><span class="p">.</span><span class="n">currency</span><span class="p">;</span>
+var firstItemTitle = anonymousPaidCartObject.paidItems[0].title;
+var currency = anonymousPaidCartObject.payment.currency;
 </code></pre>
 <p>This actually works, but it’s a terrible idea, I hope you’ll agree. Creating a throw-away instance of an anonymous type in order to be able to reflect over the type definition is not how you declare types. It’s convoluted and confusing.</p>
 <p>So while it is technically possible to use anonymous DTOs as target models for deserialization, you really shouldn’t. As source models for serialization, however, anonymous DTOs are not too bad. In fact, they have some advantages over explicit DTOs in that you don’t have to write and maintain them yourself.</p>
 <h2>Dictionary</h2>
 <p>Finally, we come to the venerable old dictionary! With respect to representing a property bag, it really is an obvious choice, isn’t it? A property bag is literally what a dictionary is. In particular, it should be a dictionary that uses strings for keys and objects for values.</p>
 <p>Here is a dictionary used as serialization source:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartBag</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="p">{</span>
-  <span class="p">{</span>
-    <span class="s">"_state"</span><span class="p">,</span> <span class="s">"paid"</span>
-  <span class="p">},</span>
-  <span class="p">{</span>
-    <span class="s">"paidItems"</span><span class="p">,</span>
-    <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;()</span> <span class="p">{</span>
-      <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="p">{</span>
-        <span class="p">{</span> <span class="s">"id"</span><span class="p">,</span> <span class="s">"1bcd"</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="s">"title"</span><span class="p">,</span> <span class="s">"gizmo"</span> <span class="p">}</span>
-      <span class="p">},</span>
-      <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="p">{</span>
-        <span class="p">{</span> <span class="s">"id"</span><span class="p">,</span> <span class="s">"3cdf"</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="s">"title"</span><span class="p">,</span> <span class="s">"widget"</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="s">"description"</span><span class="p">,</span> <span class="s">"A very useful item"</span> <span class="p">}</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">},</span>
-  <span class="p">{</span>
-    <span class="s">"payment"</span><span class="p">,</span>
-    <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;</span> <span class="p">{</span>
-      <span class="p">{</span> <span class="s">"amount"</span><span class="p">,</span> <span class="m">123.5</span> <span class="p">},</span>
-      <span class="p">{</span> <span class="s">"currency"</span><span class="p">,</span> <span class="s">"USD"</span> <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">},</span>
-  <span class="p">{</span>
-    <span class="s">"timestamp"</span><span class="p">,</span> <span class="s">"2020-04-11T10:11:33.514+02:00"</span>
-  <span class="p">}</span>
- <span class="p">};</span>
+<pre><code class="language-csharp">var paidCartBag = new Dictionary&lt;string, object&gt; {
+  {
+    "_state", "paid"
+  },
+  {
+    "paidItems",
+    new List&lt;object&gt;() {
+      new Dictionary&lt;string, object&gt; {
+        { "id", "1bcd" },
+        { "title", "gizmo" }
+      },
+      new Dictionary&lt;string, object&gt; {
+        { "id", "3cdf" },
+        { "title", "widget" },
+        { "description", "A very useful item" }
+      }
+    }
+  },
+  {
+    "payment",
+    new Dictionary&lt;string, object&gt; {
+      { "amount", 123.5 },
+      { "currency", "USD" }
+    }
+  },
+  {
+    "timestamp", "2020-04-11T10:11:33.514+02:00"
+  }
+ };
 </code></pre>
 <p>It is more verbose than the versions using explicit or anonymous DTOs above. I’m using the dictionary initializer syntax in C# to make it as compact as possible, but still.</p>
 <p>It is very straightforward however. It makes no assumptions and places no bets against future changes to the JSON document format. Someone could decide to rename the <code>paidItems</code> property in the JSON to paid items and we wouldn’t break a sweat. The code change would be trivial. Moreover the effect of the code change would obviously be local - there would be no surprise changes to the serialization of other properties.</p>
 <p>What about the deserialization target scenario, which caused so much trouble for our DTOs? We would like to be able to write something like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
-<span class="s">  ""_state"": ""paid"",</span>
-<span class="s">  ""paidItems"": [</span>
-<span class="s">    {</span>
-<span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo""</span>
-<span class="s">    },</span>
-<span class="s">    {</span>
-<span class="s">      ""id"" : ""3cdf"",</span>
-<span class="s">      ""title"": ""widget"",</span>
-<span class="s">      ""description"": ""A very useful item""</span>
-<span class="s">    }</span>
-<span class="s">  ],</span>
-<span class="s">  ""payment"": {</span>
-<span class="s">    ""amount"": 123.5,</span>
-<span class="s">    ""currency"": ""USD""</span>
-<span class="s">  },</span>
-<span class="s">  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""</span>
-<span class="s">}"</span><span class="p">;</span>
+<pre><code class="language-csharp">var paidCartJsonString = @"{
+  ""_state"": ""paid"",
+  ""paidItems"": [
+    {
+      ""id"": ""1bcd"",
+      ""title"": ""gizmo""
+    },
+    {
+      ""id"" : ""3cdf"",
+      ""title"": ""widget"",
+      ""description"": ""A very useful item""
+    }
+  ],
+  ""payment"": {
+    ""amount"": 123.5,
+    ""currency"": ""USD""
+  },
+  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""
+}";
 
-<span class="kt">var</span> <span class="n">paidCartBagFromText</span> <span class="p">=</span> <span class="n">JsonConvert</span>
-  <span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;&gt;(</span><span class="n">paidCartJsonString</span><span class="p">);</span>
+var paidCartBagFromText = JsonConvert
+  .DeserializeObject&lt;Dictionary&lt;string, object&gt;&gt;(paidCartJsonString);
 
-<span class="kt">var</span> <span class="n">firstItemTitle</span> <span class="p">=</span> <span class="n">paidCartBagFromText</span><span class="p">[</span><span class="s">"paidItems"</span><span class="p">][</span><span class="m">0</span><span class="p">][</span><span class="s">"title"</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">currency</span> <span class="p">=</span> <span class="n">paidCartBagFromText</span><span class="p">[</span><span class="s">"payment"</span><span class="p">][</span><span class="s">"currency"</span><span class="p">];</span>
+var firstItemTitle = paidCartBagFromText["paidItems"][0]["title"];
+var currency = paidCartBagFromText["payment"]["currency"];
 </code></pre>
 <p>Alas, it doesn’t work! The reason is that while we can easily tell the JSON serializer that we want the outermost object to be a dictionary, it doesn’t know that we want that rule to apply recursively. In general, the JSON serializer doesn’t know what to do with JSON objects and JSON arrays, so it must revert to defaults.</p>
 <p>We’re back to custom deserializers, in fact. Deserialization really is much more iffy than serialization. The only good news is that deserialization of JSON into a nested structure of string-to-object dictionaries, object lists and primitive values is again a closed problem. It is not subject to change. We could do it once, and not have to revisit it again. Since our target model won’t change, our custom deserializer won’t have to change either. So while it’s painful, the pain is at least bounded.</p>
 <p>Here is a naive attempt at an implementation, thrown together in maybe half an hour:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">PropertyBagDeserializer</span> <span class="p">:</span> <span class="n">JsonConverter</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="n">CanRead</span> <span class="p">=&gt;</span> <span class="k">true</span><span class="p">;</span>
+<pre><code class="language-csharp">public class PropertyBagDeserializer : JsonConverter
+{
+  public override bool CanRead =&gt; true;
 
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="n">CanWrite</span> <span class="p">=&gt;</span> <span class="k">false</span><span class="p">;</span>
+  public override bool CanWrite =&gt; false;
 
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="nf">CanConvert</span><span class="p">(</span><span class="n">Type</span> <span class="n">objectType</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="k">true</span><span class="p">;</span>
-  <span class="p">}</span>
+  public override bool CanConvert(Type objectType)
+  {
+    return true;
+  }
 
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">object</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
-    <span class="n">Type</span> <span class="n">objectType</span><span class="p">,</span>
-    <span class="kt">object</span> <span class="n">existingValue</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="nf">ReadValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
-  <span class="p">}</span>
+  public override object ReadJson(JsonReader reader,
+    Type objectType,
+    object existingValue,
+    JsonSerializer serializer)
+  {
+    return ReadValue(reader, serializer);
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">StartObject</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">ReadObjectValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">StartArray</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">ReadArrayValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="k">else</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="nf">ReadSimpleValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+  private static object ReadValue(JsonReader reader,
+    JsonSerializer serializer)
+  {
+    if (reader.TokenType == JsonToken.StartObject)
+    {
+      return ReadObjectValue(reader, serializer);
+    }
+    else if (reader.TokenType == JsonToken.StartArray)
+    {
+      return ReadArrayValue(reader, serializer);
+    }
+    else
+    {
+      return ReadSimpleValue(reader, serializer);
+    }
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadObjectValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-    <span class="kt">var</span> <span class="n">dictionary</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;();</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">!=</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">EndObject</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">==</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">PropertyName</span><span class="p">)</span>
-      <span class="p">{</span>
-        <span class="kt">var</span> <span class="n">propertyName</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">reader</span><span class="p">.</span><span class="n">Value</span><span class="p">;</span>
-        <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-        <span class="n">dictionary</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span> <span class="p">=</span> <span class="n">ReadValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">);</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">dictionary</span><span class="p">;</span>
-  <span class="p">}</span>
+  private static object ReadObjectValue(JsonReader reader,
+    JsonSerializer serializer)
+  {
+    reader.Read();
+    var dictionary = new Dictionary&lt;string, object&gt;();
+    while (reader.TokenType != JsonToken.EndObject)
+    {
+      if (reader.TokenType == JsonToken.PropertyName)
+      {
+        var propertyName = (string) reader.Value;
+        reader.Read();
+        dictionary[propertyName] = ReadValue(reader, serializer);
+      }
+    }
+    reader.Read();
+    return dictionary;
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadArrayValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-    <span class="kt">var</span> <span class="n">list</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;();</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">reader</span><span class="p">.</span><span class="n">TokenType</span> <span class="p">!=</span> <span class="n">JsonToken</span><span class="p">.</span><span class="n">EndArray</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="n">list</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">ReadValue</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">serializer</span><span class="p">));</span>
-    <span class="p">}</span>
-    <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">list</span><span class="p">;</span>
-  <span class="p">}</span>
+  private static object ReadArrayValue(JsonReader reader,
+    JsonSerializer serializer)
+  {
+    reader.Read();
+    var list = new List&lt;object&gt;();
+    while (reader.TokenType != JsonToken.EndArray)
+    {
+      list.Add(ReadValue(reader, serializer));
+    }
+    reader.Read();
+    return list;
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="kt">object</span> <span class="nf">ReadSimpleValue</span><span class="p">(</span><span class="n">JsonReader</span> <span class="n">reader</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="kt">var</span> <span class="n">val</span> <span class="p">=</span> <span class="n">serializer</span><span class="p">.</span><span class="n">Deserialize</span><span class="p">(</span><span class="n">reader</span><span class="p">);</span>
-    <span class="n">reader</span><span class="p">.</span><span class="n">Read</span><span class="p">();</span>
-    <span class="k">return</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
+  private static object ReadSimpleValue(JsonReader reader,
+    JsonSerializer serializer)
+  {
+    var val = serializer.Deserialize(reader);
+    reader.Read();
+    return val;
+  }
 
-  <span class="k">public</span> <span class="k">override</span> <span class="k">void</span> <span class="nf">WriteJson</span><span class="p">(</span><span class="n">JsonWriter</span> <span class="n">writer</span><span class="p">,</span>
-    <span class="kt">object</span> <span class="k">value</span><span class="p">,</span>
-    <span class="n">JsonSerializer</span> <span class="n">serializer</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">throw</span> <span class="k">new</span> <span class="nf">NotImplementedException</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  public override void WriteJson(JsonWriter writer,
+    object value,
+    JsonSerializer serializer)
+  {
+    throw new NotImplementedException();
+  }
+}
 </code></pre>
 <p>It probably has bugs. It didn’t crash on my one test input (the paid cart JSON we’ve seen multiple times in this blog post), that’s all the verification I have done. Writing custom deserializers is a pain, and few developers have enough time available to become experts at it. I’m certainly no expert, I have to look it up and go through a slow discovery process every time. But there is a chance that it might one day become relatively bug-free, since the target isn’t moving. There are no external sources of trouble.</p>
 <p>With the custom deserializer, deserializing to a dictionary looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">paidCartJsonString</span> <span class="p">=</span> <span class="s">@"{</span>
-<span class="s">  ""_state"": ""paid"",</span>
-<span class="s">  ""paidItems"": [</span>
-<span class="s">    {</span>
-<span class="s">      ""id"": ""1bcd"",</span>
-<span class="s">      ""title"": ""gizmo""</span>
-<span class="s">    },</span>
-<span class="s">    {</span>
-<span class="s">      ""id"" : ""3cdf"",</span>
-<span class="s">      ""title"": ""widget"",</span>
-<span class="s">      ""description"": ""A very useful item""</span>
-<span class="s">    }</span>
-<span class="s">  ],</span>
-<span class="s">  ""payment"": {</span>
-<span class="s">    ""amount"": 123.5,</span>
-<span class="s">    ""currency"": ""USD""</span>
-<span class="s">  },</span>
-<span class="s">  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""</span>
-<span class="s">}"</span><span class="p">;</span>
+<pre><code class="language-csharp">var paidCartJsonString = @"{
+  ""_state"": ""paid"",
+  ""paidItems"": [
+    {
+      ""id"": ""1bcd"",
+      ""title"": ""gizmo""
+    },
+    {
+      ""id"" : ""3cdf"",
+      ""title"": ""widget"",
+      ""description"": ""A very useful item""
+    }
+  ],
+  ""payment"": {
+    ""amount"": 123.5,
+    ""currency"": ""USD""
+  },
+  ""timestamp"": ""2020-04-11T10:11:33.514+02:00""
+}";
 
-<span class="kt">var</span> <span class="n">paidCartBagFromText</span> <span class="p">=</span> <span class="n">JsonConvert</span>
-  <span class="p">.</span><span class="n">DeserializeObject</span><span class="p">&lt;</span><span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;&gt;(</span><span class="n">paidCartJsonString</span><span class="p">);</span>
+var paidCartBagFromText = JsonConvert
+  .DeserializeObject&lt;Dictionary&lt;string, object&gt;&gt;(paidCartJsonString);
 
-<span class="kt">var</span> <span class="n">paidItems</span> <span class="p">=</span> <span class="p">(</span><span class="n">List</span><span class="p">&lt;</span><span class="kt">object</span><span class="p">&gt;)</span> <span class="n">paidCartBagFromText</span><span class="p">[</span><span class="s">"paidItems"</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">firstItem</span> <span class="p">=</span> <span class="p">(</span><span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;)</span> <span class="n">paidItems</span><span class="p">[</span><span class="m">0</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">firstItemTitle</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">firstItem</span><span class="p">[</span><span class="s">"title"</span><span class="p">];</span>
+var paidItems = (List&lt;object&gt;) paidCartBagFromText["paidItems"];
+var firstItem = (Dictionary&lt;string, object&gt;) paidItems[0];
+var firstItemTitle = (string) firstItem["title"];
 
-<span class="kt">var</span> <span class="n">payment</span> <span class="p">=</span> <span class="p">(</span><span class="n">Dictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">object</span><span class="p">&gt;)</span> <span class="n">paidCartBagFromText</span><span class="p">[</span><span class="s">"payment"</span><span class="p">];</span>
-<span class="kt">var</span> <span class="n">currency</span> <span class="p">=</span> <span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="n">payment</span><span class="p">[</span><span class="s">"currency"</span><span class="p">];</span>
+var payment = (Dictionary&lt;string, object&gt;) paidCartBagFromText["payment"];
+var currency = (string) payment["currency"];
 </code></pre>
 <p>There is a lot of casting going on. We might be able to gloss it over a bit by offering some extension methods on dictionary and list. I’m not sure it would help or make matters worse.</p>
 <p>The reason is in JSON’s nature, I guess. It is a completely heterogenic property bag. It’s never going to be a frictionless thing in a statically typed language, at least not of the C# ilk.</p>

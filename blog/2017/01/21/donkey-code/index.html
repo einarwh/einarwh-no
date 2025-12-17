@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Donkey code | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Donkey code"><meta property="og:url" content="https://einarwh.no/blog/2017/01/21/donkey-code/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Donkey code</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Donkey code | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Donkey code"><meta property="og:url" content="https://einarwh.no/blog/2017/01/21/donkey-code/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Donkey code</h1>
 <p class="blog-post-date">January 21, 2017</p>
 <p><em>This is an attempt to write down a very simple example I’ve been using to explain the profound impact the language we use has on thought, discussion and ultimately code.</em></p>
 <p>Imagine you have a computer system, and that you’re one of the programmers working on that system (not too hard, is it?). The system is called, oh I don’t know, eQuest. It has to do with horses. So it typically works with entities of this kind:</p>
@@ -10,22 +10,22 @@
 <p>There is now a tendency for confusion when discussing other kinds of changes to the product, though. The unqualified term “horse” is obviously used quite a bit in all kinds of discussions, but sometimes the special short and stubborn kind is meant to be included and sometimes it is not. So to clarify, you and your co-workers find yourself saying things like “any horse” to mean the former and “regular horse”, “ordinary horse”, “old horse”, “horse-horse” or even “horse that’s not small and stubborn” to mean the latter.</p>
 <p>To implement support for the new horse in eQuest, you need some way of distinguish between it and an ordinary horse-horse. So you add an <strong>IsShort</strong> property to your <strong>Horse</strong> data representation. That’s easy, it’s just a derived property from the <strong>Height</strong> property. No changes to the database schema or anything. In addition, you add an <strong>IsStubborn</strong> property and checkbox to the registration form for horses in eQuest. That’s a new flag in the database, but that’s OK. With that in place, you have everything you need to implement the new functionality and make the necessary adjustments otherwise.</p>
 <p>Although much of the code applies to horses and short, stubborn horses alike, you find that the transport module, the feeding module, the training module and the breeding module all need a few adjustments, since the new horses aren’t quite like the regular horses in all respects. You need to inject little bits of logic here, split some cases in two there. It takes a few different forms, and you and your co-workers do things a bit differently. Sometimes you employ if-branches with logic that looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">if</span> <span class="p">(</span><span class="n">horse</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span> <span class="n">horse</span><span class="p">.</span><span class="n">IsStubborn</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// Logic for the new horse case.</span>
-<span class="p">}</span>
-<span class="k">else</span> <span class="p">{</span>
-  <span class="c1">// Regular horse code here.</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">if (horse.IsShort &amp;&amp; horse.IsStubborn) {
+  // Logic for the new horse case.
+}
+else {
+  // Regular horse code here.
+}
 </code></pre>
 <p>Other times you go fancy with LINQ:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">newHorses</span> <span class="p">=</span> <span class="n">horses</span><span class="p">.</span><span class="n">Where</span><span class="p">(</span><span class="n">h</span> <span class="p">=&gt;</span> <span class="n">h</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span> <span class="n">h</span><span class="p">.</span><span class="n">IsStubborn</span><span class="p">);</span>
-<span class="kt">var</span> <span class="n">oldHorses</span> <span class="p">=</span> <span class="n">horses</span><span class="p">.</span><span class="n">Except</span><span class="p">(</span><span class="n">newHorses</span><span class="p">);</span>
-<span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">h</span> <span class="k">in</span> <span class="n">newHorses</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// New horse logic.</span>
-<span class="p">}</span>
-<span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="n">h</span> <span class="k">in</span> <span class="n">oldHorses</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// Old horse logic.</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">var newHorses = horses.Where(h =&gt; h.IsShort &amp;&amp; h.IsStubborn);
+var oldHorses = horses.Except(newHorses);
+foreach (var h in newHorses) {
+  // New horse logic.
+}
+foreach (var h in oldHorses) {
+  // Old horse logic.
+}
 </code></pre>
 <p>And that appears to work pretty well, and you go live with support for short and stubborn horses.</p>
 <p>Next day, you have a couple of new bug reports, one in the training module and two concerning the feeding module. It turns out that some of the regular horses are short and stubborn too, so your users would register short regular horses, tick the stubborn checkbox, and erroneously get new horse logic instead of the appropriate horse-horse logic. That’s awkward, but understandable. So you call a few meetings, discuss the issue with your fellow programmers, scratch your head, talk to a UX designer and your product owner. And you figure out that not only are the new horses short and stubborn, they make a distinct sound too. They don’t neigh the way regular horses do, they hee-haw instead.</p>
@@ -35,20 +35,20 @@
 <p>What is it? Well, it’s the offspring from a horse and a horse that’s short and stubborn and says hee-haw. It shares some properties with the former kind of horse and some with the latter, so obviously there will be much reuse! And a few customizations and adjustments unique for this <em>new</em> new kind of horse. At this point you’re getting worried. You sense there will be trouble if you can’t speak clearly about this horse, so you cry out “let’s call it a half hee-haw!” But it doesn’t catch on. Talking about things is getting a bit cumbersome.</p>
 <p>“But at least I can still implement it,” you think for yourself. “And I can mostly guess what kind of horses the UX people are thinking about when they say ‘horse’ anyway, I’ll just map it in my head to the right thing”. You add a <strong>Sire</strong> and a <strong>Dam</strong> property to <strong>Horse</strong>. And you proceed to update existing logic and write new logic.</p>
 <p>You now have code that looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">if</span> <span class="p">(</span><span class="n">horse</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">IsStubborn</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">Sound</span> <span class="p">==</span> <span class="n">Sound</span><span class="p">.</span><span class="n">HeeHaw</span><span class="p">)</span> <span class="p">||</span>
-   <span class="p">(</span><span class="n">horse</span><span class="p">.</span><span class="n">Sire</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">Sire</span><span class="p">.</span><span class="n">IsStubborn</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">Sire</span><span class="p">.</span><span class="n">Sound</span> <span class="p">==</span> <span class="n">Sound</span><span class="p">.</span><span class="n">HeeHaw</span><span class="p">)</span> <span class="p">||</span>
-   <span class="p">(</span><span class="n">horse</span><span class="p">.</span><span class="n">Dam</span><span class="p">.</span><span class="n">IsShort</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">Dam</span><span class="p">.</span><span class="n">IsStubborn</span> <span class="p">&amp;&amp;</span>
-    <span class="n">horse</span><span class="p">.</span><span class="n">Dam</span><span class="p">.</span><span class="n">Sound</span> <span class="p">==</span> <span class="n">Sound</span><span class="p">.</span><span class="n">HeeHaw</span><span class="p">))</span> <span class="p">{</span>
-  <span class="c1">// Logic for both the new horse and the new-new horse!</span>
-<span class="p">}</span>
-<span class="k">else</span> <span class="p">{</span>
-  <span class="c1">// Really regular horse code here.</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">if (horse.IsShort &amp;&amp;
+    horse.IsStubborn &amp;&amp;
+    horse.Sound == Sound.HeeHaw) ||
+   (horse.Sire.IsShort &amp;&amp;
+    horse.Sire.IsStubborn &amp;&amp;
+    horse.Sire.Sound == Sound.HeeHaw) ||
+   (horse.Dam.IsShort &amp;&amp;
+    horse.Dam.IsStubborn &amp;&amp;
+    horse.Dam.Sound == Sound.HeeHaw)) {
+  // Logic for both the new horse and the new-new horse!
+}
+else {
+  // Really regular horse code here.
+}
 </code></pre>
 <p>Which turns out to be wrong, since the new new horse doesn’t really neigh <em>or</em> hee-haw, it does something in-between. There is no word for it, so you invent one: the <em>neigh-haw</em>. You extend the <strong>Sound</strong> enumeration to incorporate it and fix your code.</p>
 <p>Getting all the edge cases right takes a while. Your product owner is starting to wonder why development is slowing down, when so much of the functionality can be reused. You mumble something about technical debt. But you manage to get the bug count down to acceptable levels, much thanks to diligent testing.</p>

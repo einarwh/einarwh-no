@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Something for nothing | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Something for nothing"><meta property="og:url" content="https://einarwh.no/blog/2017/01/17/something-for-nothing/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Something for nothing</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Something for nothing | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Something for nothing"><meta property="og:url" content="https://einarwh.no/blog/2017/01/17/something-for-nothing/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Something for nothing</h1>
 <p class="blog-post-date">January 17, 2017</p>
 <p>I thought I’d jot down some fairly obvious things about values in programs.</p>
 <p>Say you have some value in your program. For instance, it could be a <strong>String</strong>, or a <strong>Thing</strong>. Then conceptually, each <strong>String</strong> belongs to the set of possible <strong>String</strong>s, and each <strong>Thing</strong> belongs to the set of possible <strong>Thing</strong>s. Right?</p>
@@ -20,127 +20,127 @@
 <p>So how can we do that? If we reject the temptation to put special values with special interpretation rules into the same bag as the legit values, what can we do?</p>
 <p>If you’re a C# programmer, you’re thinking that you can use <strong>Nullable</strong> to represent the absence of a primitive value instead. This is true, and you should. <strong>Nullable</strong> is a wrapper around a primitive type, creating a <em>new</em> type that can have either <strong>null</strong> or a legit instance of the primitive type as value. On top of that, the the compiler works pretty to hard to blur the line between the underlying type and its <strong>Nullable</strong> counterpart, such as special syntax and implicit type conversion from <strong>T</strong> to <strong>Nullable&lt;T&gt;</strong>.</p>
 <p>In a language with sum types, we can do something similar to <strong>Nullable</strong>, but in a completely generic way. What is a sum type? It is a composite type created by combining various classes of things into a single thing. Here’s an example:</p>
-<pre class="codehilite"><code class="language-fsharp"><span></span><span class="k">type</span> <span class="nc">Utterance</span> <span class="o">=</span> <span class="n">Fee</span> <span class="o">|</span> <span class="n">Fie</span> <span class="o">|</span> <span class="n">Foe</span> <span class="o">|</span> <span class="n">Fum</span>
+<pre><code class="language-fsharp">type Utterance = Fee | Fie | Foe | Fum
 </code></pre>
 <p>So it’s sort of like an enumeration of variants. But it’s a rich man’s enumeration, since you can associate a variant with a value of another type. Like so:</p>
-<pre class="codehilite"><code class="language-fsharp"><span></span><span class="k">type</span> <span class="nc">ThingOrNothing</span> <span class="o">=</span> <span class="n">Indeed</span> <span class="k">of</span> <span class="n">Thing</span> <span class="o">|</span> <span class="n">Nothing</span>
+<pre><code class="language-fsharp">type ThingOrNothing = Indeed of Thing | Nothing
 </code></pre>
 <p>This creates a type that distinguishes neatly between legit <strong>Thing</strong>s and the absence of a <strong>Thing</strong>. Either you’ll indeed have a <strong>Thing</strong>, or you’ll have nothing. And since absence stands to presence in the same way for all types, we can generalize it:</p>
-<pre class="codehilite"><code class="language-fsharp"><span></span><span class="k">type</span> <span class="nc">Mayhaps</span><span class="o">&lt;</span><span class="k">'</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">Indeed</span> <span class="k">of</span> <span class="k">'</span><span class="n">T</span> <span class="o">|</span> <span class="n">Nothing</span>
+<pre><code class="language-fsharp">type Mayhaps&lt;'T&gt; = Indeed of 'T | Nothing
 </code></pre>
 <p>The nice thing is that we can now distinguish between the case where we <em>might</em> have a value or not and the case where we know we <em>do</em> have a value (provided our language doesn’t allow null, of course). In other words, we can have a function of type <strong>Mayhaps&lt;Thing&gt; -&gt; Thing</strong>. This is a big deal! We can distinguish between the parts of our program that have to worry about absent values and the parts that don’t. We’ve fixed the brain damage, our program can form memories of the checks we’ve made. It’s a beautiful feat of surgery, enabled by sum types and the absence of <strong>null</strong>.</p>
 <p>So sum types neatly solves this problem with representing absence and presence of values, on top of, and orthogonally to, the issue of defining a set of possible values for a given shape of data. What’s more, this is just one application of a general feature of the language. There is no need to complicate the language itself with special handling of absence. Instead, you’re likely to find something like <strong>Mayhaps</strong> in the standard library. In F# it’s called <strong>Option</strong>, in Elm it’s called <strong>Maybe</strong>. In languages like F# and Elm - any functional language that carries DNA from Robin Milner’s ML - you’ll find that you have both sum types and pattern matching. Pattern matching makes it very easy to work with the sum type variants.</p>
 <p>The code you write to handle absence and presence follows certain patterns, which means you can create abstractions. For instance, say you have some function <em>thingify</em> of type <strong>String -&gt; Thing</strong>, which takes a <strong>String</strong> and produces a <strong>Thing</strong>. Now suppose you’re given an <strong>Mayhaps&lt;String&gt;</strong> instead of a <strong>String</strong>. If you don’t have a <strong>String</strong>, you don’t get a <strong>Thing</strong>, but if indeed you do have a <strong>String</strong>, you’d like to apply <em>thingify</em> to get a <strong>Thing</strong>. Right?</p>
 <p>Here’s how you might write it out, assuming F#-style syntax and pattern matching:</p>
-<pre class="codehilite"><code class="language-fsharp"><span></span><span class="k">match</span> <span class="n">dunnoCouldBe</span> <span class="k">with</span>
-<span class="o">|</span> <span class="n">Indeed</span> <span class="n">str</span> <span class="o">-&gt;</span> <span class="n">Indeed</span> <span class="o">(</span><span class="n">thingify</span> <span class="n">str</span><span class="o">)</span>
-<span class="o">|</span> <span class="n">Nothing</span> <span class="o">-&gt;</span> <span class="n">Nothing</span>
+<pre><code class="language-fsharp">match dunnoCouldBe with
+| Indeed str -&gt; Indeed (thingify str)
+| Nothing -&gt; Nothing
 </code></pre>
 <p>This pattern is going to pop up again and again when you’re working with <strong>Mayhaps</strong> values, where the only thing that varies is the function you’d like to apply. So you can write a general function to handle this:</p>
-<pre class="codehilite"><code class="language-fsharp"><span></span><span class="k">let</span> <span class="nv">quux</span> <span class="o">(</span><span class="n">f</span> <span class="o">:</span> <span class="k">'</span><span class="n">T</span> <span class="o">-&gt;</span> <span class="k">'</span><span class="n">U</span><span class="o">)</span> <span class="o">(</span><span class="n">v</span> <span class="o">:</span> <span class="n">Mayhaps</span><span class="o">&lt;</span><span class="k">'</span><span class="n">T</span><span class="o">&gt;)</span> <span class="o">:</span> <span class="n">Mayhaps</span><span class="o">&lt;</span><span class="k">'</span><span class="n">U</span><span class="o">&gt;</span> <span class="o">=</span>
-  <span class="k">match</span> <span class="n">v</span> <span class="k">with</span>
-  <span class="o">|</span> <span class="n">Indeed</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="n">Indeed</span> <span class="o">(</span><span class="n">f</span> <span class="n">t</span><span class="o">)</span>
-  <span class="o">|</span> <span class="n">Nothing</span> <span class="o">-&gt;</span> <span class="n">Nothing</span>
+<pre><code class="language-fsharp">let quux (f : 'T -&gt; 'U) (v : Mayhaps&lt;'T&gt;) : Mayhaps&lt;'U&gt; =
+  match v with
+  | Indeed t -&gt; Indeed (f t)
+  | Nothing -&gt; Nothing
 </code></pre>
 <p>Whenever you need to optionally transform a <strong>Mayhaps</strong> value using some function, you just pass both of them to <strong>quux</strong> to handle it. But of course, chances are you’ll find that <strong>quux</strong> has already been written for you. In F#, it’s called <strong>Option.map</strong>. Because it map from one kind of <strong>Option</strong> value to another.</p>
 <p>At this point, we’ve got the mechanics and practicalities of working with values that could be present or absent worked out. Now what should you do when you change your mind about where and how you handle the absence of a value? This is a design decision, even a business rule. These things change.</p>
 <p>The short answer is that when these things change, you get a rippling change in type signatures in your program - from the place where you made a change, to the place where you handle the effect of the change. This is a good thing. This is the compiler pointing out where you need to do some work to make the change work as planned. That’s another benefit of treating the absence of values explicitly instead of mixing it up with the values themselves.</p>
 <p>That’s all well and good, but what can you do if you’re a C# or Java programmer? What if your programming language has <strong>null</strong> and no sum types? Well, you could implement something similar to <strong>Mayhaps</strong> using the tools available to you.</p>
 <p>Here’s a naive implementation written down very quickly, without a whole lot of thought put into it:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">abstract</span> <span class="k">class</span> <span class="nc">Mayhaps</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-<span class="p">{</span>
-  <span class="k">private</span> <span class="nf">Mayhaps</span><span class="p">()</span> <span class="p">{}</span>
+<pre><code class="language-csharp">public abstract class Mayhaps&lt;T&gt;
+{
+  private Mayhaps() {}
 
-  <span class="k">public</span> <span class="k">abstract</span> <span class="kt">bool</span> <span class="n">HasValue</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+  public abstract bool HasValue { get; }
 
-  <span class="k">public</span> <span class="k">abstract</span> <span class="n">T</span> <span class="n">Value</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
+  public abstract T Value { get; }
 
-  <span class="k">public</span> <span class="k">abstract</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Map</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">);</span>
+  public abstract Mayhaps&lt;TR&gt; Map&lt;TR&gt;(Func&lt;T, TR&gt; f);
 
-  <span class="k">private</span> <span class="k">class</span> <span class="nc">MayhapsValue</span> <span class="p">:</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-  <span class="p">{</span>
-    <span class="k">private</span> <span class="k">readonly</span> <span class="n">T</span> <span class="n">_value</span><span class="p">;</span>
+  private class MayhapsValue : Mayhaps&lt;T&gt;
+  {
+    private readonly T _value;
 
-    <span class="k">public</span> <span class="nf">MayhapsValue</span><span class="p">(</span><span class="n">T</span> <span class="k">value</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="s">"Begone, null!"</span><span class="p">);</span>
-      <span class="p">}</span>
+    public MayhapsValue(T value)
+    {
+      if (value == null) {
+        throw new ArgumentNullException("Begone, null!");
+      }
 
-      <span class="n">_value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
-    <span class="p">}</span>
+      _value = value;
+    }
 
-    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="n">HasValue</span>
-    <span class="p">{</span>
-      <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">true</span><span class="p">;</span> <span class="p">}</span>
-    <span class="p">}</span>
+    public override bool HasValue
+    {
+      get { return true; }
+    }
 
-    <span class="k">public</span> <span class="k">override</span> <span class="n">T</span> <span class="n">Value</span>
-    <span class="p">{</span>
-      <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_value</span><span class="p">;</span> <span class="p">}</span>
-    <span class="p">}</span>
+    public override T Value
+    {
+      get { return _value; }
+    }
 
-    <span class="k">public</span> <span class="k">override</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Map</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;.</span><span class="n">Indeed</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">_value</span><span class="p">));</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+    public override Mayhaps&lt;TR&gt; Map&lt;TR&gt;(Func&lt;T, TR&gt; f)
+    {
+      return Mayhaps&lt;TR&gt;.Indeed(f(_value));
+    }
+  }
 
-  <span class="k">private</span> <span class="k">class</span> <span class="nc">MayhapsNothing</span> <span class="p">:</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span>
-  <span class="p">{</span>
-    <span class="k">public</span> <span class="k">override</span> <span class="kt">bool</span> <span class="n">HasValue</span>
-    <span class="p">{</span>
-      <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">false</span><span class="p">;</span> <span class="p">}</span>
-    <span class="p">}</span>
+  private class MayhapsNothing : Mayhaps&lt;T&gt;
+  {
+    public override bool HasValue
+    {
+      get { return false; }
+    }
 
-    <span class="k">public</span> <span class="k">override</span> <span class="n">T</span> <span class="n">Value</span>
-    <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">throw</span> <span class="k">new</span> <span class="n">InvalidOperationException</span><span class="p">(</span><span class="s">"Nothing here."</span><span class="p">);</span> <span class="p">}</span> <span class="p">}</span>
+    public override T Value
+    { get { throw new InvalidOperationException("Nothing here."); } }
 
-    <span class="k">public</span> <span class="k">override</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;</span> <span class="n">Map</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;(</span><span class="n">Func</span><span class="p">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TR</span><span class="p">&gt;</span> <span class="n">f</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">return</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">TR</span><span class="p">&gt;.</span><span class="n">Nothing</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+    public override Mayhaps&lt;TR&gt; Map&lt;TR&gt;(Func&lt;T, TR&gt; f)
+    {
+      return Mayhaps&lt;TR&gt;.Nothing;
+    }
+  }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="n">MayhapsNothing</span> <span class="n">_nothing</span> <span class="p">=</span> <span class="k">new</span> <span class="n">MayhapsNothing</span><span class="p">();</span>
+  private static MayhapsNothing _nothing = new MayhapsNothing();
 
-  <span class="k">public</span> <span class="k">static</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Indeed</span><span class="p">(</span><span class="n">T</span> <span class="k">value</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="nf">MayhapsValue</span><span class="p">(</span><span class="k">value</span><span class="p">);</span>
-  <span class="p">}</span>
+  public static Mayhaps&lt;T&gt; Indeed(T value)
+  {
+    return new MayhapsValue(value);
+  }
 
-  <span class="k">public</span> <span class="k">static</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="n">Nothing</span>
-  <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_nothing</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  public static Mayhaps&lt;T&gt; Nothing
+  {
+    get { return _nothing; }
+  }
+}
 </code></pre>
 <p>Now you can write code like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">foo</span> <span class="p">=</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;.</span><span class="n">Nothing</span><span class="p">;</span>
-<span class="kt">var</span> <span class="n">bar</span> <span class="p">=</span> <span class="n">Mayhaps</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;.</span><span class="n">Indeed</span><span class="p">(</span><span class="s">"lol"</span><span class="p">);</span>
-<span class="kt">var</span> <span class="n">couldBeStrings</span> <span class="p">=</span> <span class="k">new</span><span class="p">[]</span> <span class="p">{</span> <span class="n">foo</span><span class="p">,</span> <span class="n">bar</span> <span class="p">};</span>
-<span class="kt">var</span> <span class="n">couldBeLengths</span> <span class="p">=</span> <span class="n">couldBeStrings</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">it</span> <span class="p">=&gt;</span> <span class="n">it</span><span class="p">.</span><span class="n">Map</span><span class="p">(</span><span class="n">s</span> <span class="p">=&gt;</span> <span class="n">s</span><span class="p">.</span><span class="n">Length</span><span class="p">));</span>
+<pre><code class="language-csharp">var foo = Mayhaps&lt;string&gt;.Nothing;
+var bar = Mayhaps&lt;string&gt;.Indeed("lol");
+var couldBeStrings = new[] { foo, bar };
+var couldBeLengths = couldBeStrings.Select(it =&gt; it.Map(s =&gt; s.Length));
 </code></pre>
 <p>A better solution would be to use a library such as Succinc&lt;T&gt; to do the job for you.</p>
 <p>Regardless of how you do it, however, it’s always going to be a bit clunky. What’s more is it won’t really solve our problem.</p>
 <p>As you’ll recall, the problem with <strong>null</strong> is that you can’t escape from it. In a sense, what is missing isn’t <strong>Mayhaps</strong>. It’s the opposite. With <strong>null</strong>, everything is <strong>Mayhaps</strong>! We still don’t have a way to say that we know that the value is there. So perhaps a better solution is to implement the opposite? We could try. Here’s a very simple type that banishes <strong>null</strong>:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">sealed</span> <span class="k">class</span> <span class="nc">Indeed</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;</span> <span class="p">{</span>
+<pre><code class="language-csharp">public sealed class Indeed&lt;T&gt; {
 
-  <span class="k">private</span> <span class="k">readonly</span> <span class="n">T</span> <span class="n">_value</span><span class="p">;</span>
+  private readonly T _value;
 
-  <span class="k">public</span> <span class="nf">Indeed</span><span class="p">(</span><span class="n">T</span> <span class="k">value</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="k">value</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span>
-    <span class="p">{</span>
-      <span class="k">throw</span> <span class="k">new</span> <span class="nf">ArgumentNullException</span><span class="p">(</span><span class="s">"Begone, null!"</span><span class="p">));</span>
-    <span class="p">}</span>
+  public Indeed(T value) {
+    if (value == null)
+    {
+      throw new ArgumentNullException("Begone, null!"));
+    }
 
-    <span class="n">_value</span> <span class="p">=</span> <span class="k">value</span><span class="p">;</span>
-  <span class="p">}</span>
+    _value = value;
+  }
 
-  <span class="k">public</span> <span class="n">T</span> <span class="n">Value</span> <span class="p">{</span>
-    <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_value</span><span class="p">;</span> <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  public T Value {
+    get { return _value; }
+  }
+}
 </code></pre>
 <p>Now the question is - apart from being very clunky - does it work? And the depressing answer is: not really. It addresses the correct problem, but it fails for an obvious reason - how do you ensure that the <strong>Indeed</strong> value itself isn’t <strong>null</strong>? Put it inside another <strong>Indeed</strong>?</p>
 <p>Implementing <strong>Indeed</strong> as a struct (that is, a value type) doesn’t work too great either. While a struct <strong>Indeed</strong> cannot be null, you can very easily obtain an uninitialized <strong>Indeed</strong>, for instance by getting the default value of the struct, which is always available. In that case, you would end up with an <strong>Indeed</strong> which wraps a <strong>null</strong>, which is unacceptable.</p>

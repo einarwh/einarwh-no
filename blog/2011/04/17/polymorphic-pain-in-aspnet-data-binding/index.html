@@ -1,59 +1,59 @@
-<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><title>Polymorphic pain in ASP.NET data binding | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Polymorphic pain in ASP.NET data binding"><meta property="og:url" content="https://einarwh.no/blog/2011/04/17/polymorphic-pain-in-aspnet-data-binding/"><link rel="stylesheet" href="/bundles/061de80df310/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Polymorphic pain in ASP.NET data binding</h1>
+<!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Polymorphic pain in ASP.NET data binding | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Polymorphic pain in ASP.NET data binding"><meta property="og:url" content="https://einarwh.no/blog/2011/04/17/polymorphic-pain-in-aspnet-data-binding/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Polymorphic pain in ASP.NET data binding</h1>
 <p class="blog-post-date">April 17, 2011</p>
 <p>I recently found out - the hard way, of course - that data binding in ASP.NET is broken with respect to polymorphism. It’s not consistently broken, though - it depends on the particular control you’re using. Makes life as a programmer that much more interesting, doesn’t it?</p>
 <p>Let’s consider a very simple example. We have a type hierarchy like the following:</p>
 <p><img src="/images/181f170ed575/canine-hierarchy.png" alt="Hierarchy of canines."></p>
 <p>There’s an <strong>ICanine</strong> interface, with implementing classes <strong>Wolf</strong> and <strong>Dog</strong>. <strong>Chihuahua</strong> is a subclass of the latter. The code looks like this:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">interface</span> <span class="n">ICanine</span> 
-<span class="p">{</span>
-  <span class="kt">string</span> <span class="n">Bark</span> <span class="p">{</span> <span class="k">get</span><span class="p">;</span> <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">interface ICanine 
+{
+  string Bark { get; }
+}
 
-<span class="k">class</span> <span class="nc">Wolf</span> <span class="p">:</span> <span class="n">ICanine</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Bark</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="s">"Aooo!"</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span> 
-<span class="p">}</span>
+class Wolf : ICanine
+{
+  public virtual string Bark { get { return "Aooo!"; } } 
+}
 
-<span class="k">class</span> <span class="nc">Dog</span> <span class="p">:</span> <span class="n">ICanine</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="k">virtual</span> <span class="kt">string</span> <span class="n">Bark</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="s">"Woof!"</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span> 
-<span class="p">}</span>
+class Dog : ICanine
+{
+  public virtual string Bark { get { return "Woof!"; } } 
+}
 
-<span class="k">class</span> <span class="nc">Chihuahua</span> <span class="p">:</span> <span class="n">Dog</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="n">Bark</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="s">"Arff!"</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span> 
-<span class="p">}</span>
+class Chihuahua : Dog
+{
+  public override string Bark { get { return "Arff!"; } } 
+}
 </code></pre>
 <p>Now we’d like to conjure up a collection of canines and bind to them. Sounds innocent enough, right? And it is, if you use one of the benign controls. “Benign” as in “not badly broken”. <strong>ListBox</strong> is one of those. We create an <strong>IEnumerable&lt;ICanine&gt;</strong> like so:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">canines</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ICanine</span><span class="p">&gt;</span> <span class="p">{</span> <span class="k">new</span> <span class="n">Dog</span><span class="p">(),</span> <span class="k">new</span> <span class="n">Wolf</span><span class="p">(),</span> <span class="k">new</span> <span class="n">Chihuahua</span><span class="p">()</span> <span class="p">};</span>
+<pre><code class="language-csharp">var canines = new List&lt;ICanine&gt; { new Dog(), new Wolf(), new Chihuahua() };
 </code></pre>
 <p>And then we do the two-step song-and-dance of ASP.NET data binding (assuming that <strong>_box</strong> is an instance of <strong>ListBox</strong>):</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">_box</span><span class="p">.</span><span class="n">DataSource</span> <span class="p">=</span> <span class="n">canines</span><span class="p">;</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>
+<pre><code class="language-csharp">_box.DataSource = canines;
+_box.DataBind();
 </code></pre>
 <p>We run it, and get the following result:</p>
 <p><img src="/images/03761fd52410/bark-listbox.png" alt="Barks in a listbox"></p>
 <p>Presto! All is well! What is this guy talking about? Broken polymorphism? Where?</p>
 <p>Well, that was the benign control, remember? Here’s a malicious one: <strong>DataGrid</strong>.</p>
 <p>We do the exact same thing, except using <strong>_grid</strong> of the obvious type:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">_grid</span><span class="p">.</span><span class="n">DataSource</span> <span class="p">=</span> <span class="n">canines</span><span class="p">;</span>
-<span class="n">_grid</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>
+<pre><code class="language-csharp">_grid.DataSource = canines;
+_grid.DataBind();
 </code></pre>
 <p>We run it, and get…</p>
 <p><img src="/images/df5ea6171ceb/exception-grid-wolf.png" alt="TargetInvocationException was unhandled by user code."></p>
 <p>Ouch.</p>
 <p>Evidently, there’s some reflection voodoo going on underneath the hood when you’re doing data binding in ASP.NET. And in the case of <strong>DataGrid</strong>, that voodoo is just too feeble.</p>
 <p>Now, consider a variation of the code above, omitting the <strong>Wolf</strong>. Wolves are trouble after all.</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">canines</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ICanine</span><span class="p">&gt;</span> <span class="p">{</span> <span class="k">new</span> <span class="n">Dog</span><span class="p">(),</span> <span class="k">new</span> <span class="n">Chihuahua</span><span class="p">()</span> <span class="p">};</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataSource</span> <span class="p">=</span> <span class="n">canines</span><span class="p">;</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>
+<pre><code class="language-csharp">var canines = new List&lt;ICanine&gt; { new Dog(), new Chihuahua() };
+_box.DataSource = canines;
+_box.DataBind();
 </code></pre>
 <p>This time…</p>
 <p><img src="/images/829f741ce39e/bark-grid-dogs.png" alt="Barks in a grid"></p>
 <p>It works! Oh man, that’s weird. So apparently subclassing works as long as there’s a common base class? You wish. Let’s try this instead:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="kt">var</span> <span class="n">canines</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ICanine</span><span class="p">&gt;</span> <span class="p">{</span> <span class="k">new</span> <span class="n">Chihuahua</span><span class="p">(),</span> <span class="k">new</span> <span class="n">Dog</span><span class="p">()</span> <span class="p">};</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataSource</span> <span class="p">=</span> <span class="n">canines</span><span class="p">;</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>
+<pre><code class="language-csharp">var canines = new List&lt;ICanine&gt; { new Chihuahua(), new Dog() };
+_box.DataSource = canines;
+_box.DataBind();
 </code></pre>
 <p>That is, we reverse the order, passing in the <strong>Chihuahua</strong> first, before the <strong>Dog</strong>. And now:</p>
 <p><img src="/images/2d359621d40d/reflection-dog-exception.png" alt="TargetInvocationException was unhandled by user code."></p>
@@ -61,16 +61,16 @@
 <p>The reflection voodoo seems to be making some arbitrary assumptions regarding types based on the first element in the enumerable or some such. You could probably tease out the details using <a href="https://en.wikipedia.org/wiki/.NET_Reflector">Reflector</a> and coffee, but there’s no point. It’s just broken; I don’t care exactly how. What we need is a simple and predicatable workaround.</p>
 <h2>Workaround</h2>
 <p>You can mitigate the problem (aka complicate your program in order to work around a broken framework) by using a wrapper type that always stays the same. That way, the type of the instances handed out by the <strong>IEnumerable</strong> stays nice and homogenous, just the way <strong>DataGrid</strong> likes it. Inside the wrapper, you delegate to whatever <strong>ICanine</strong> you want:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">DataBindingCanineWrapper</span> <span class="p">:</span> <span class="n">ICanine</span> 
-<span class="p">{</span>
-  <span class="k">private</span> <span class="k">readonly</span> <span class="n">ICanine</span> <span class="n">_</span><span class="p">;</span>
+<pre><code class="language-csharp">class DataBindingCanineWrapper : ICanine 
+{
+  private readonly ICanine _;
 
-  <span class="k">public</span> <span class="nf">DataBindingCanineWrapper</span><span class="p">(</span><span class="n">ICanine</span> <span class="n">canine</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">_</span> <span class="p">=</span> <span class="n">canine</span><span class="p">;</span>
-  <span class="p">}</span>
+  public DataBindingCanineWrapper(ICanine canine) {
+    _ = canine;
+  }
   
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">Bark</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_</span><span class="p">.</span><span class="n">Bark</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-<span class="p">}</span>
+  public string Bark { get { return _.Bark; } }
+}
 </code></pre>
 <p>This effectively replaces the original <strong>IEnumerable&lt;ICanine&gt;</strong> containing the bare <strong>Chihuahua</strong> and <strong>Dog</strong> with one that contains only wrapper canines. So data binding should work. And it does:</p>
 <p><img src="/images/b4028abc4860/wrapped-chihuahua.png" alt="Result of using the canine wrapper."></p>
@@ -85,35 +85,35 @@
 <p>Now, given that <strong>ListBox</strong> also expects an untyped <strong>IEnumerable</strong>, how come polymorphism seems to work in that case?</p>
 <p>Consider three unrelated classes, <strong>Huey</strong>, <strong>Dewey</strong> and <strong>Louie</strong>. We’ll make them singletons since there can only be one of each. More importantly, they all inherit directly from <strong>System.Object</strong>; there’s nothing else linking them together (no <strong>IDuck</strong> interface, no <strong>Duck</strong> base class). Coincidentally, though, they each sport a <strong>QuacksLike</strong> property.</p>
 <p>Here’s the code for <strong>Huey</strong>:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">class</span> <span class="nc">Huey</span>
-<span class="p">{</span>
-  <span class="k">private</span> <span class="nf">Huey</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
+<pre><code class="language-csharp">class Huey
+{
+  private Huey() { }
 
-  <span class="k">private</span> <span class="k">static</span> <span class="k">readonly</span> <span class="n">Huey</span> <span class="n">_instance</span> <span class="p">=</span> <span class="k">new</span> <span class="n">Huey</span><span class="p">();</span>
+  private static readonly Huey _instance = new Huey();
 
-  <span class="k">public</span> <span class="k">static</span> <span class="n">Huey</span> <span class="n">Instance</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_instance</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
+  public static Huey Instance { get { return _instance; } }
 
-  <span class="k">public</span> <span class="kt">string</span> <span class="n">QuacksLike</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="s">"Huey."</span><span class="p">;</span> <span class="p">}</span> <span class="p">}</span>
-<span class="p">}</span>
+  public string QuacksLike { get { return "Huey."; } }
+}
 </code></pre>
 <p>As you can imagine, the declarations for <strong>Dewey</strong> and <strong>Louie</strong> are remarkably similar.</p>
 <p>Let’s toss all three into an <strong>IEnumerable</strong> and see what happens:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="n">_box</span><span class="p">.</span><span class="n">DataSource</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ArrayList</span> <span class="p">{</span> <span class="n">Huey</span><span class="p">.</span><span class="n">Instance</span><span class="p">,</span> <span class="n">Dewey</span><span class="p">.</span><span class="n">Instance</span><span class="p">,</span> <span class="n">Louie</span><span class="p">.</span><span class="n">Instance</span> <span class="p">};</span>
-<span class="n">_box</span><span class="p">.</span><span class="n">DataBind</span><span class="p">();</span>
+<pre><code class="language-csharp">_box.DataSource = new ArrayList { Huey.Instance, Dewey.Instance, Louie.Instance };
+_box.DataBind();
 </code></pre>
 <p>The result is this:</p>
 <p><img src="/images/903410e105bd/ducks-listbox.png" alt="A ListBox of ducks"></p>
 <p>Isn’t that something? It’s not really polymorphic at all! Instead, it turns out that <strong>ListBox</strong> supports duck typing. As long as the object has a public property matching the <strong>DataTextField</strong> for the <strong>ListBox</strong>, the actual type is irrelevant. The property’s type is irrelevant too. We could change <strong>Dewey</strong>‘s implementation of <strong>QuacksLike</strong> like this, and it will still work:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="n">Quacker</span> <span class="n">QuacksLike</span> <span class="p">{</span> <span class="k">get</span> <span class="p">{</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Quacker</span><span class="p">();</span> <span class="p">}</span> <span class="p">}</span>
+<pre><code class="language-csharp">public Quacker QuacksLike { get { return new Quacker(); } }
 </code></pre>
 <p><strong>Quacker</strong> could be anything, really. Here’s a possibility:</p>
-<pre class="codehilite"><code class="language-csharp"><span></span><span class="k">public</span> <span class="k">class</span> <span class="nc">Quacker</span>
-<span class="p">{</span>
-  <span class="k">public</span> <span class="k">override</span> <span class="kt">string</span> <span class="nf">ToString</span><span class="p">()</span> 
-  <span class="p">{</span>
-    <span class="k">return</span> <span class="s">"Any ol' duck."</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<pre><code class="language-csharp">public class Quacker
+{
+  public override string ToString() 
+  {
+    return "Any ol' duck.";
+  }
+}
 </code></pre>
 <p>Now we get this:</p>
 <p><img src="/images/2bd391229191/any-old-duck.png" alt="Any old duck with a QuacksLike property"></p>
