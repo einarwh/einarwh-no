@@ -1,0 +1,109 @@
+<svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+      <style>
+        .axisline {
+          stroke: #D3D3D3;
+          stroke-width: 1px;
+        }
+        .axisname {
+          font: bold 18px Arial, Helvetica, sans-serif;
+          fill: #000;
+        }
+        .pathcurve { stroke: #000; }
+        .bananas {
+          font: 18px Arial, Helvetica, sans-serif;
+          fill: #808080;
+        }
+        @media (prefers-color-scheme: dark) {
+          .axisline { stroke: #808080; }
+          .axisname { fill: #FFF; }
+          .pathcurve { stroke: #FFF; }
+          .bananas { stroke: #D3D3D3; }
+        }
+      </style>
+
+      <!-- Horizontal lines -->
+      <line
+        class="axisline"
+        x1="60"
+        y1="10"
+        x2="660"
+        y2="10"
+      />
+      <line
+        class="axisline"
+        x1="60"
+        y1="472"
+        x2="660"
+        y2="472"
+      />
+
+      <!-- Vertical lines -->
+      <line
+        class="axisline"
+        x1="60"
+        y1="10"
+        x2="60"
+        y2="472"
+      />
+      <line
+        class="axisline"
+        x1="260"
+        y1="10"
+        x2="260"
+        y2="472"
+      />
+      <line
+        class="axisline"
+        x1="460"
+        y1="10"
+        x2="460"
+        y2="472"
+      />
+      <line
+        class="axisline"
+        x1="660"
+        y1="10"
+        x2="660"
+        y2="472"
+      />
+
+      <!-- Text -->
+      <text
+        text-anchor="middle"
+        transform="translate(30,240) rotate(-90)"
+        class="axisname"
+      >
+        ENJOYMENT
+      </text>
+      <text
+        text-anchor="middle"
+        transform="translate(365,520)"
+        class="axisname"
+      >
+        BANANA COUNT
+      </text>
+
+      <text text-anchor="middle" transform="translate(60,495)" class="bananas">
+        0
+      </text>
+      <text text-anchor="middle" transform="translate(260,495)" class="bananas">
+        1
+      </text>
+      <text text-anchor="middle" transform="translate(460,495)" class="bananas">
+        2
+      </text>
+      <text text-anchor="middle" transform="translate(660,495)" class="bananas">
+        3
+      </text>
+
+      <!-- Curves -->
+      <path
+        class="pathcurve"
+        id="idealcurve"
+        d="M 60 472 C 65 400, 80 200 100 120 C 120 0, 240 -20 280 60 C 330 160, 380 400 420 670 "
+        stroke-width="1.5"
+        stroke="black"
+        fill="transparent"
+      />
+
+    </svg>
