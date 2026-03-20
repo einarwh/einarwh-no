@@ -10,7 +10,7 @@
 {
     public string UserName { get; set; }
     public string Email { get; set; }
-    public DateTime BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 }
 </code></pre>
 <p>For a particular customer value, that we may colloquially refer as “John”, this will yield the following JSON when serialized:</p>
@@ -27,7 +27,7 @@
     public string UserName { get; set; }
     public string DisplayName { get; set; }
     public string Email { get; set; }
-    public DateTime BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 }
 </code></pre>
 <p>We persist new values of this type, yielding JSON documents like this.</p>
@@ -159,7 +159,7 @@
     "birthDate": "2002-08-13"
 }
 </code></pre>
-<p>This is nice, because it gives me all we need to reproduce the validation result if we should want to. (Omitting the fact that you can pass various evaluation options to the validation tool.)</p>
+<p>This is nice, because it gives us all we need to reproduce the validation result if we should want to. (Omitting the fact that you can pass various evaluation options to the validation tool.)</p>
 <p>But ok, what have we gained by this? We have attached a toe tag to the JSON document. Does this solve our original problem with the time gap between the serialized value and the type acting as deserialization target? No! It solves nothing on its own. We are just being explicit and keeping notes. When it’s time to resuscitate John from his deep slumber, we still have to deal with the time gap, the fact that the world has moved ahead while John was in limbo.</p>
 <p>So how should we deal with it? There are two obvious solutions.</p>
 <p>We could of course perform a migration of JSON documents whenever we introduce a new version of the contract. This is a process that is out-of-band to the application. But that is a little bit cumbersome, even worrisome, because when should we run that process, and what happens while it is running? How should we synchronize it with the deployment of our application?</p>
