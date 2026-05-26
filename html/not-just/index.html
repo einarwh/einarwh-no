@@ -40,6 +40,7 @@
             }
         }
     </style>
+    <script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 
@@ -81,11 +82,9 @@
 //"not just at the infrastructure layer, but at the model behavior layer",
         ];
 
-        var lineNo = 0;
-
         const textElement = document.getElementById('bouncing-text');
-        const posXElement = document.getElementById('position-x');
-        const posYElement = document.getElementById('position-y');
+
+        var lineNo = 0;
 
         let posX = window.innerWidth / 2;
         let posY = window.innerHeight / 2;
@@ -111,6 +110,16 @@
             return 3 + getRandomInt(1);
         }
 
+        function getRandomLine() {
+            const i = getRandomInt(lines.length);
+            if (i == lineNo) {
+                return getRandomLine();
+            } else {
+                lineNo = i;
+                return lines[lineNo];
+            }
+        }
+
         function animate() {
             const rect = textElement.getBoundingClientRect();
             const screenWidth = window.innerWidth;
@@ -119,14 +128,15 @@
             if (posX - rect.width / 2 <= 0) {
                 const nextSpeedX = getRandomSpeed();
                 speedX = nextSpeedX;
-                textElement.innerText = getNextLine();
+                textElement.innerText = getRandomLine();
                 const updatedRect = textElement.getBoundingClientRect();
                 posX = updatedRect.width / 2;
             }
 
             if (posX + rect.width / 2 >= screenWidth) {
-                speedX = -speedX;
-                textElement.innerText = getNextLine();
+                const nextSpeedX = getRandomSpeed();
+                speedX = -nextSpeedX;
+                textElement.innerText = getRandomLine();
                 const updatedRect = textElement.getBoundingClientRect();
                 posX = screenWidth - updatedRect.width / 2;
             }
@@ -134,7 +144,7 @@
             if (posY - rect.height / 2 <= 0) {
                 const nextSpeedY = getRandomSpeed();
                 speedY = nextSpeedY;
-                textElement.innerText = getNextLine();
+                textElement.innerText = getRandomLine();
                 const updatedRect = textElement.getBoundingClientRect();
                 posY = updatedRect.height / 2;
             }
@@ -142,7 +152,7 @@
             if (posY + rect.height / 2 >= screenHeight) {
                 const nextSpeedY = getRandomSpeed();
                 speedY = -nextSpeedY;
-                textElement.innerText = getNextLine();
+                textElement.innerText = getRandomLine();
                 const updatedRect = textElement.getBoundingClientRect();
                 posY = screenHeight - updatedRect.height / 2;
             }
