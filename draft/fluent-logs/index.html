@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en" prefix="og: http://ogp.me/ns#"><head><link rel="icon" sizes="any" type="image/svg+xml" href="/images/3d4226764423/favfish.svg"><script data-goatcounter="https://einarwh.goatcounter.com/count" async="" src="https://gc.zgo.at/count.js"></script><script src="/js/0486e9205f01/highlight.min.js"></script><script>hljs.highlightAll();</script><title>Fluent logs | einarwh</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta property="og:title" content="Fluent logs"><meta property="og:url" content="https://einarwh.no/draft/fluent-logs/"><link rel="stylesheet" href="/bundles/3bb5cc0e0a53/app.css"></head><body><header><div id="blog-header"><span style="display:inline-block"><a href="/">einarwh</a></span><span style="float: right;"><a href="/feed/atom.xml">feed</a></span></div><hr></header><h1>Fluent logs</h1>
-<p class="blog-post-date">September 19, 2026</p>
-<p>I made a silly little fluent interface for making assertions about any logging in my code in my unit tests.</p>
+<p class="blog-post-date">September 22, 2026</p>
+<p>I’ve made a silly little fluent interface for making assertions about logging in my unit tests, specifically my xUnit tests.</p>
 <p>On reading that, certain thoughts might pop into your head, such as “but is it a good or a bad idea to validate logging in unit tests?” That’s fine, I don’t blame you. But such thoughts don’t interest me, so I won’t be addressing them. I will just concern myself with how the interface works.</p>
 <p>So how does it work?</p>
 <h2>Basic checks</h2>
@@ -9,7 +9,7 @@
 </code></pre>
 <p>If the log is empty, all is well. Otherwise, the test will fail. For instance, we could write a self-defeating test like this:</p>
 <pre><code class="language-csharp">[Fact]
-void TestEmptyLog() {
+void IsEmptyFailsIfLogIsntEmpty() {
     var log = new InMemoryLogger&lt;object&gt;();
     log.LogInformation("Hello");
     log.LogWarning("Oh no!");
@@ -23,7 +23,7 @@ void TestEmptyLog() {
 </code></pre>
 <p>We can make that fail as well, by providing an empty log.</p>
 <pre><code class="language-csharp">[Fact]
-void TestEmptyLog() {
+void IsNotEmptyFailsIfLogIsEmpty() {
     var log = new InMemoryLogger&lt;object&gt;();
     Check.That(log).IsNotEmpty();
 }
