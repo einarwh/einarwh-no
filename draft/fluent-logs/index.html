@@ -163,10 +163,11 @@ logger.LogInformation("Finished processing.");
 </code></pre>
 <p>These are all equivalent, in that they lead to the same metadata being logged. They’re all ways of creating a scope out of a property bag of sorts.</p>
 <p>In fact, <code>BeginScope</code> will treat any composite object we pass it as a property bag. Which means we could do weird stuff like this:</p>
-<pre><code class="language-csharp">using var scope = logger.BeginScope(new Thread(() =&gt; {}));
+<pre><code class="language-csharp">using var scope = logger.BeginScope(Stopwatch.StartNew());
 </code></pre>
-<p>If we do that, the logging provider will scavenge the <code>Thread</code> object for any and all properties it might have (like <code>IsAlive</code>, <code>Priority</code>, and <code>Name</code>) to be used as metadata. I mention this not because it’s a good idea, but because it’s possible, and my silly little interface needs to handle it.</p>
-<p>There’s a different use case for scopes, as well, which may be thought of as tagging as opposed to passing a bag of properties. In that case, we simply pass in a string.</p>
+<p>If we do that, the logging provider will scavenge the <code>Stopwatch</code> object for any and all properties it has (like <code>Elapsed</code>, <code>ElapsedMilliseconds</code>, <code>ElapsedTicks</code> and <code>IsRunning</code>) and use them as metadata. I mention this not because it’s a good idea, but because it’s possible and so must be handled somehow.</p>
+<p>The exact semantics of something like this can be hard to predict. Does <code>BeginScope</code> create a snapshot of the properties, or are the property values sampled anew from the scope object on every log statement? As far as I can tell, that’s up to the concrete <code>ILogger</code> implementation to decide.</p>
+<p>There’s a different use case for scopes as well, which may be thought of as tagging as opposed to passing a bag of properties. In that case, we simply pass in a string.</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope("Processing");
 </code></pre>
 <p>What happens to this string? Again, it depends on the logging provider. In the case of Application Insights, it ends up as the value of the <code>Scope</code> property in customDimensions. The same goes for any primitive value we might pass in, such as an integer or a boolean.</p>
