@@ -74,14 +74,14 @@ void IsNotEmptyFailsIfLogIsEmpty() {
         LogEntry.Error("Oh no!"));
 </code></pre>
 <p>A <code>LogEntry</code> is what the <code>InMemoryLogger</code> keeps in memory. It holds on to the log message and the log level, and can also have an associated exception and one or more logging scopes, which we’ll return to shortly.</p>
-<p>For now, we have one more thing that a test might complain about. Say we log a single “Oh no!” at warning level, but our assertion species that it should have been logged at error level instead:</p>
+<p>For now, we have one more thing that a test might complain about. Say we log a single “Oh no!” at warning level, but our assertion specifies that it should have been logged at error level instead:</p>
 <pre><code class="language-csharp">Check.That(log).Logged(LogEntry.Error("Oh no!"));
 </code></pre>
 <p>The failure message is basically what I just wrote:</p>
-<pre><code class="language-text">&gt; Expected log level of log entry #0 'Oh no!' to be 'Error' but was 'Warning'.
+<pre><code class="language-text">&gt; Expected level of log entry #0 'Oh no!' to be 'Error' but was 'Warning'.
 </code></pre>
 <h2>Filtering</h2>
-<p>It may be that we don’t care about <em>all</em> the log messages, just some of them. Perhaps we’re only interested in messages at certain log levels. If so, there are a couple of options for filtering.</p>
+<p>It may be that we don’t care about <em>all</em> the log messages, just some of them. Perhaps we’re only interested in messages at certain log levels, for instance. If so, there are a couple of options for filtering.</p>
 <p>To check messages at a certain log level or above, we use the <code>Level</code> method. It allows us to specify the lower bound for the messages to include.</p>
 <p>For instance, the code may contain volatile trace logging that is irrelevant for the test. We don’t want to have to change test all the time to accommodate that. So instead we’d write something like this:</p>
 <pre><code class="language-csharp">Check.That(log)
@@ -113,9 +113,9 @@ void IsNotEmptyFailsIfLogIsEmpty() {
             .WithException(new DisasterException("Boom")));
 </code></pre>
 <p>If we’re lucky, the test passes and everything is fine. If not, we could get either one of these fairly lengthy error messages:</p>
-<pre><code class="language-text">&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom' but found none.
-&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom' but was exception of type 'NotImplementedException' with message 'Boom'.
-&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom' but was exception of type 'DisasterException' with message 'BOOOOOM'.
+<pre><code class="language-text">&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom', but found none.
+&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom', but was exception of type 'NotImplementedException' with message 'Boom'.
+&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'DisasterException' with message 'Boom', but was exception of type 'DisasterException' with message 'BOOOOOM'.
 </code></pre>
 <p>This probably covers most cases, but sometimes we get into awkward situations. For instance, what if there is no public constructor for the exception we’re expecting? In that case, we can do this instead:</p>
 <pre><code class="language-csharp">Check.That(log)
@@ -130,7 +130,7 @@ void IsNotEmptyFailsIfLogIsEmpty() {
             .WithException&lt;FancyException&gt;(it =&gt; it.Code == 17));
 </code></pre>
 <p>In this case the error messages will be a bit more generic, since the content of the check is opaque to the test. These are typical errors:</p>
-<pre><code class="language-text">&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception to check but found none.
+<pre><code class="language-text">&gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception to check, but found none.
 &gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'FancyException' with message 'Boom' didn't satisfy the provided check.
 &gt; Exception check failed for log entry #0: 'Oh no!'. Expected exception of type 'NotImplementedException' with message 'Boom' didn't satisfy the type requirement 'FancyException' of the provided check.
 </code></pre>
@@ -146,15 +146,16 @@ logger.LogInformation("Starting processing.");
 ...
 logger.LogInformation("Finished processing.");
 </code></pre>
-<p>This makes sure that the IDs for the job and the customer accompany all the log statements until the scope falls out of scope so to speak. The scope metadata is handled by whatever logging provider we’re using. If we’re logging to Application Insights, the metadata will pop up in customDimensions, for instance. This is very neat and practical.</p>
+<p>This makes sure that the IDs for the job and the customer accompany all the log statements until the scope falls out of scope so to speak. The scope metadata is handled by whatever log provider we’re using. If we’re logging to Application Insights, the metadata will pop up in customDimensions, for instance. This is very neat and practical.</p>
 <p>The <code>BeginScope</code> method is incredibly flexible, which is both a blessing and a curse. In the example above we used a <code>Dictionary</code>, but we can provide the same metadata in many, many ways.</p>
 <p>One alternative is a sequence of key-value pairs, like so:</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope(new [] {
-    new KeyValuePair&lt;string, string&gt;("JobId", job.Id),
-    new KeyValuePair&lt;string, string&gt;("CustomerId", job.CustomerId)
+    new KeyValuePair&lt;string, object&gt;("JobId", job.Id),
+    new KeyValuePair&lt;string, object&gt;("CustomerId", job.CustomerId)
 });
 </code></pre>
-<p>Or we could use an anonymous object:</p>
+<p>…which opens up the problematic possibility of duplicate keys which must be handled in one way or another by the log provider. In comparing scopes, I’ve opted for a last-pair-wins strategy.</p>
+<p>Another alternative is to use an anonymous object:</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope(
     new {
         JobId = job.Id,
@@ -165,12 +166,12 @@ logger.LogInformation("Finished processing.");
 <p>In fact, <code>BeginScope</code> will treat any composite object we pass it as a property bag. Which means we could do weird stuff like this:</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope(Stopwatch.StartNew());
 </code></pre>
-<p>If we do that, the logging provider will scavenge the <code>Stopwatch</code> object for any and all properties it has (like <code>Elapsed</code>, <code>ElapsedMilliseconds</code>, <code>ElapsedTicks</code> and <code>IsRunning</code>) and use them as metadata. I mention this not because it’s a good idea, but because it’s possible and so must be handled somehow.</p>
+<p>If we do that, the log provider will scavenge the <code>Stopwatch</code> object for any and all properties it has (like <code>Elapsed</code>, <code>ElapsedMilliseconds</code>, <code>ElapsedTicks</code> and <code>IsRunning</code>) and use them as metadata. I mention this not because it’s a good idea, but because it’s possible and so must be handled somehow.</p>
 <p>The exact semantics of something like this can be hard to predict. Does <code>BeginScope</code> create a snapshot of the properties, or are the property values sampled anew from the scope object on every log statement? As far as I can tell, that’s up to the concrete <code>ILogger</code> implementation to decide.</p>
 <p>There’s a different use case for scopes as well, which may be thought of as tagging as opposed to passing a bag of properties. In that case, we simply pass in a string.</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope("Processing");
 </code></pre>
-<p>What happens to this string? Again, it depends on the logging provider. In the case of Application Insights, it ends up as the value of the <code>Scope</code> property in customDimensions. The same goes for any primitive value we might pass in, such as an integer or a boolean.</p>
+<p>What happens to this string? Again, it depends on the log provider. In the case of Application Insights, it ends up as the value of the <code>Scope</code> property in customDimensions. The same goes for any primitive value we might pass in, such as an integer or a boolean.</p>
 <p>That pretty much covers the various uses of <code>BeginScope</code> as defined on <code>ILogger</code>. However, there is also an extension method called <code>BeginScope</code>, which combines the tagging and property bag approaches in a way. We can pass it a message template and parameters, much like we would for a typical log statement:</p>
 <pre><code class="language-csharp">using var scope = logger.BeginScope(
     "Processing job {JobId} for customer {CustomerId}", 
@@ -198,7 +199,7 @@ logger.LogInformation("Finished processing.");
         }
     }); 
 </code></pre>
-<p>If we pass a scope like that to the Application Insights logging provider, what happens? We get two properties added to customDimensions, <code>JobId</code> and <code>Details</code>. The value for the <code>JobId</code> is the integer 17. But what about <code>Details</code>? It becomes serialized as JSON:</p>
+<p>If we pass a scope like that to the Application Insights log provider, what happens? We get two properties added to customDimensions, <code>JobId</code> and <code>Details</code>. The value for the <code>JobId</code> is the integer 17. But what about <code>Details</code>? It becomes serialized as JSON:</p>
 <pre><code class="language-json">{ "CustomerId": "..." }
 </code></pre>
 <p>I decided to do something similar. Instead of descending into the dark depths of nested property bags, I treat all property bags as shallow. Nested property bags are converted into JSON which is used for comparison.</p>
@@ -215,13 +216,13 @@ logger.LogInformation("Finished processing.");
 </code></pre>
 <p>Here we’re expecting a single scope with two properties. In the code using the <code>log</code>, there should be a corresponding <code>BeginScope</code> call with an equivalent bag of properties. What happens if there isn’t? There are some obvious things that can go wrong.</p>
 <p>We could have a scope with the correct properies, but one or more of the values is wrong. For instance, if the actual value for the “JobId” property were 11 instead of 12, we would get the following error:</p>
-<pre><code class="language-text">&gt; Expected property 'JobId' to have value '12' in scope #0 for log entry #0 'Hey there!" but found '11' instead.
+<pre><code class="language-text">&gt; Expected property 'JobId' to have value '12' in scope #0 for log entry #0 'Hey there!, but found '11' instead.
 </code></pre>
 <p>(You can see that each scope is referred to by index, starting at 0, just like the log entries.)</p>
 <p>What if the value of the property is of the wrong type, say, string instead of integer?</p>
-<pre><code class="language-text">&gt; Expected property 'JobId' to have value '12' of type 'Int32' in scope #0 for log entry #0 'Hey there!" but found 'abc' of type 'String' instead.
+<pre><code class="language-text">&gt; Expected property 'JobId' to have value '12' of type 'Int32' in scope #0 for log entry #0 'Hey there!', but found 'abc' of type 'String' instead.
 </code></pre>
-<p>If the value mismatch occurs inside a nested property bag, the error message will include JSON representations of both the expected and the actual property value. Say, for instance, that we assert that the “CustomerId” should be “boop”, like so:</p>
+<p>If the value mismatch occurs inside a nested property bag, the error message will include JSON representations of both the expected and the actual property value. Say, for instance, that we assert that the “CustomerId” should be “toad”, like so:</p>
 <pre><code class="language-csharp">Check.That(log)
     .Logged(
         LogEntry.Information("Hello")
@@ -229,26 +230,26 @@ logger.LogInformation("Finished processing.");
                 new {
                     JobId = 12,
                     Details = new {
-                        CustomerId = "boop"
+                        CustomerId = "toad"
                     }
                 }));
 </code></pre>
-<p>Now if it happens to be “beep” instead, we get this error:</p>
-<pre><code class="language-text">&gt; Expected property 'Details' to have value '{"CustomerId":"boop"}' in scope #0 for log entry #0 'Hey there!" but found '{"CustomerId":"beep"}' instead.
+<p>Now if it happens to be “frog” instead, we get this error:</p>
+<pre><code class="language-text">&gt; Expected property 'Details' to have value '{"CustomerId":"toad"}' in scope #0 for log entry #0 'Hey there!', but found '{"CustomerId":"frog"}' instead.
 </code></pre>
 <p>What else could go wrong? One or more properties could be missing from the scope, or it could have additional properties.</p>
 <p>For instance, if the actual scope lacks the “CustomerId” property, the test will say as much:</p>
-<pre><code class="language-text">&gt; Expected property 'CustomerId' with value '...' in scope #0 for log entry #0 'Hey there!" but found nothing. 
+<pre><code class="language-text">&gt; Expected property 'CustomerId' with value '...' in scope #0 for log entry #0 'Hey there!', but found nothing. 
 </code></pre>
 <p>Similarly if the scope contains an additional “RequestedBy” property with some value:</p>
-<pre><code class="language-text">&gt; Unexpected property 'RequestedBy' with value 'some value' in scope #0 for log entry #0 'Hey there!". 
+<pre><code class="language-text">&gt; Unexpected property 'RequestedBy' with value 'some value' in scope #0 for log entry #0 'Hey there!'. 
 </code></pre>
 <p>It could be that there is no scope at all, or that there is more than one, which leads to messages like the following:</p>
-<pre><code class="language-text">&gt; Expected scope #0 of type Dictionary for log entry #0 'Hey there! but found nothing.
-&gt; Unexpected scope #1 of type Dictionary for log entry #0 'Hey there!.
+<pre><code class="language-text">&gt; Expected scope #0 of type Dictionary for log entry #0 'Hey there!', but found nothing.
+&gt; Unexpected scope #1 of type Dictionary for log entry #0 'Hey there!'.
 </code></pre>
 <p>Mixing up different kinds of scopes spells trouble too:</p>
-<pre><code class="language-text">&gt; Expected scope #0 of type Dictionary for log entry #0 'Hey there! but found scope of type String instead.
+<pre><code class="language-text">&gt; Expected scope #0 of type Dictionary for log entry #0 'Hey there!', but found scope of type String instead.
 </code></pre>
 <p>And of course we could put the right property on the wrong scope, but that should manifest itself as some combination of the errors we’ve already seen.</p>
 <h2>Individual messages</h2>
@@ -265,7 +266,7 @@ logger.LogInformation("Finished processing.");
 <p>There is no implied order of log statements here. You could log the “Hey there!” last, no problem. Each <code>Contains</code> checks all the log messages.</p>
 <p>Here’s a list of possible test failures, one per line above:</p>
 <pre><code class="language-text">&gt; Found no log entry with message 'Hey there!'.
-&gt; Expected log level of log entry 'Ooops!!' to be 'Error', but was 'Warning'.
+&gt; Expected level of log entry 'Ooops!!' to be 'Error', but was 'Warning'.
 &gt; Found no log entry with log message satisfying the check.
 &gt; Found no log entry satisfying the check.
 </code></pre>
